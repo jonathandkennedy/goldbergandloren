@@ -43,9 +43,15 @@ webhook → CRM + **instant SMS to intake**. Speed-to-lead is the whole game:
 5-min response = 21x qualification (MIT). The page converts; answering makes cases.
 
 ## Tracking — GTM (per-market containers)
-Pages auto-load GTM and push two events with `case_type` + `geo` + form answers:
-- `call_click` — any tap on a phone link
-- `lead_form_submit` — successful form completion
+Pages auto-load GTM and push two events with `case_type` + `geo`:
+- `call_click` — any tap on a phone link (fires on the lander)
+- `lead_form_submit` — fires on `/thank-you.html` (landers redirect there after a
+  successful submit, passing `?geo=&ct=&lang=`; the thank-you page loads the same
+  per-market container). Conversion triggers can therefore be EITHER the custom
+  event `lead_form_submit` OR a page-path trigger for `/thank-you.html` — both
+  work; don't use both on the same conversion action or it double-counts.
+  Honeypot bot submissions never redirect and never fire the event.
+  Meta ads: fire the pixel `Lead` event on the /thank-you.html pageview.
 Container wiring: per-geo `"gtm"` key in the `#geo-data` block (Boise is live:
 `GTM-58MTFGGD`), site-wide fallback: `CONFIG.gtmId`. NEEDED from Jon/client:
 container IDs for Oregon, Midland TX, Plantation FL accounts (+ any others).
