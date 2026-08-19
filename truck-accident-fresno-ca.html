@@ -453,7 +453,7 @@ footer a{color:var(--slate)}
 
   /* ---------- GTM + conversion events ---------- */
   var gtmId = g.gtm || CONFIG.gtmId;
-  if (gtmId) {
+  if (gtmId && !document.querySelector('script[src*="' + gtmId + '"]')) {
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
     var gs = document.createElement("script");

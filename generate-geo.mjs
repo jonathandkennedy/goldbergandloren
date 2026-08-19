@@ -49,6 +49,14 @@ function bake(slug) {
   // mark as baked so runtime swap stays inert
   out = out.replace(/<html lang="en">/, `<html lang="en" data-baked="${slug}">`);
 
+  // hard-bake the standard GTM snippet (head + noscript) when the market has a container
+  if (g.gtm) {
+    const headSnippet = `\n<!-- Google Tag Manager -->\n<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\nnew Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\nj=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n})(window,document,'script','dataLayer','${g.gtm}');</script>\n<!-- End Google Tag Manager -->`;
+    const noscript = `\n<!-- Google Tag Manager (noscript) -->\n<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=${g.gtm}"\nheight="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>\n<!-- End Google Tag Manager (noscript) -->`;
+    out = out.replace('<meta charset="utf-8">', '<meta charset="utf-8">' + headSnippet);
+    out = out.replace(/<body>/, '<body>' + noscript);
+  }
+
   const stem = basename(path, ".html");
   const dest = resolve(dirname(path), `${stem}-${slug}.html`);
   writeFileSync(dest, out);
