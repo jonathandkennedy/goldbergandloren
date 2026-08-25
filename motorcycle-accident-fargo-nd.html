@@ -273,8 +273,8 @@ footer a{color:var(--slate)}
         <button type="button" class="back">&larr; Back</button>
         <p class="q">Where should we send your free case review?</p>
         <div class="fld"><label for="f-name">Your name</label><input id="f-name" name="name" autocomplete="name" required></div>
-        <div class="fld"><label for="f-phone">Mobile phone</label><input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required></div>
-        <p class="err" id="f-err">Please enter your name and a 10-digit phone number.</p>
+        <div class="fld"><label for="f-phone">Mobile phone</label><input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(555) 123-4567" required></div>
+        <p class="err" id="f-err">Please enter your name and a valid 10-digit phone number.</p>
         <div class="hp" aria-hidden="true"><label>Company<input name="company" tabindex="-1" autocomplete="off"></label></div>
         <label class="consent"><input type="checkbox" id="f-consent" required>
           <span>I agree that Goldberg &amp; Loren may call or text me at this number about my case, including by automated means. Consent isn't required to hire the firm — you can simply call us. Msg/data rates may apply. <a href="https://goldbergloren.com/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a></span>
@@ -501,11 +501,13 @@ footer a{color:var(--slate)}
     e.preventDefault();
     var name = document.getElementById("f-name").value.trim();
     var phone = document.getElementById("f-phone").value.replace(/\D/g,"");
+    if (phone.length === 11 && phone.charAt(0) === "1") phone = phone.slice(1);
+    var phoneOk = /^[2-9]\d{2}[2-9]\d{6}$/.test(phone) && !/^(\d)\1{9}$/.test(phone) && !/^[2-9]11/.test(phone) && !/^\d{3}[2-9]11/.test(phone);
     var consent = document.getElementById("f-consent").checked;
     var err = document.getElementById("f-err");
-    if (!name || phone.length < 10 || !consent) {
+    if (!name || !phoneOk || !consent) {
       err.style.display = "block";
-      err.textContent = LANG === "es" ? (!consent ? "Marque la casilla de consentimiento para poder contactarle." : "Escriba su nombre y un teléfono de 10 dígitos.") : (!consent ? "Please check the consent box so we can contact you." : "Please enter your name and a 10-digit phone number.");
+      err.textContent = LANG === "es" ? (!consent ? "Marque la casilla de consentimiento para poder contactarle." : "Escriba su nombre y un teléfono válido de 10 dígitos.") : (!consent ? "Please check the consent box so we can contact you." : "Please enter your name and a valid 10-digit phone number.");
       return;
     }
     err.style.display = "none";

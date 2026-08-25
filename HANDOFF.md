@@ -37,6 +37,16 @@ market, and form answers are in the email body). TO DO in Formspree settings: ro
 to an inbox intake watches 24/7, and (recommended) restrict allowed domains to the
 production domain(s) once deployed.
 Payload: `{name, phone, when, injured, case_type, geo, page, submitted, _subject}` (JSON).
+Phone validation (2026-08-25, after junk "0000001"-style leads): the form now
+requires a real US number — 10 digits after stripping formatting (a leading "1"
+country code is dropped before sending), area code and exchange can't start
+with 0/1, no all-same-digit numbers, no N11 codes. NOTE: junk with fewer than
+10 digits can't come through the page at all (even the old code blocked it) —
+those leads are bots POSTing directly to the public Formspree endpoint,
+bypassing the page JS and honeypot. Fix that in the Formspree dashboard:
+restrict allowed domains to the production domain(s) and turn on spam
+filtering. Diagnostic: real form leads always arrive with subject
+"GoldbergandlorenPPC" — direct-bot spam usually comes without it.
 Free tier = 50 subs/mo — enough for launch/testing. Production upgrade: paid
 Formspree (webhooks/Zapier) or point formEndpoint straight at a Zapier/Make
 webhook → CRM + **instant SMS to intake**. Speed-to-lead is the whole game:
