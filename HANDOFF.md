@@ -47,6 +47,17 @@ bypassing the page JS and honeypot. Fix that in the Formspree dashboard:
 restrict allowed domains to the production domain(s) and turn on spam
 filtering. Diagnostic: real form leads always arrive with subject
 "GoldbergandlorenPPC" — direct-bot spam usually comes without it.
+Submit flow (2026-08-25): the page now WAITS for Formspree's response
+instead of fire-and-forget. Success (2xx) → success card + redirect to
+/thank-you.html, so lead_form_submit conversions now count only confirmed
+sends. Failure or 12s timeout → visitor stays on the form with a bilingual
+"call (512) 960-3887" error, the browser console logs
+`Lead form send failed: <status> <body>` (F12 → Console shows Formspree's
+exact reason: over quota, domain not allowed, …), and a `lead_form_error`
+dataLayer event fires with error_status. The submit button disables while
+sending (also kills double-submit dupes). If a test reaches the thank-you
+page but never appears in the dashboard, you're likely logged into a
+different Formspree account than the one that owns f/meajzepz.
 Free tier = 50 subs/mo — enough for launch/testing. Production upgrade: paid
 Formspree (webhooks/Zapier) or point formEndpoint straight at a Zapier/Make
 webhook → CRM + **instant SMS to intake**. Speed-to-lead is the whole game:

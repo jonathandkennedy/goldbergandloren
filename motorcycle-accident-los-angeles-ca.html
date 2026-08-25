@@ -511,17 +511,41 @@ footer a{color:var(--slate)}
       return;
     }
     err.style.display = "none";
-    if (form.querySelector('[name="company"]').value === "") {
-      var payload = { name:name, phone:phone, when:data.when, injured:data.injured,
-        case_type:"motorcycle-accident", geo:slug, page:location.href, submitted:new Date().toISOString() };
-      payload._subject = "GoldbergandlorenPPC";
-      if (CONFIG.formEndpoint) {
-        try { fetch(CONFIG.formEndpoint, { method:"POST", headers:{"Content-Type":"application/json","Accept":"application/json"}, body:JSON.stringify(payload), keepalive:true }); } catch(e){}
-      }
+    function showSuccess(){
+      document.getElementById("s-name").textContent = name ? ", " + name.split(" ")[0] : "";
+      show(4);
+    }
+    if (form.querySelector('[name="company"]').value !== "") { showSuccess(); return; }
+    var payload = { name:name, phone:phone, when:data.when, injured:data.injured,
+      case_type:"motorcycle-accident", geo:slug, page:location.href, submitted:new Date().toISOString() };
+    payload._subject = "GoldbergandlorenPPC";
+    if (!CONFIG.formEndpoint) { showSuccess(); return; }
+    var submitBtn = form.querySelector("button.submit");
+    var btnLabel = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = LANG === "es" ? "Enviando…" : "Sending…";
+    var settled = false;
+    function sendFail(status, detail){
+      if (settled) return; settled = true;
+      submitBtn.disabled = false; submitBtn.textContent = btnLabel;
+      try { console.error("Lead form send failed:", status, detail); } catch(e2){}
+      track("lead_form_error", { error_status: String(status) });
+      err.style.display = "block";
+      err.textContent = LANG === "es" ? "No pudimos enviar el formulario. Llame al " + g.phoneDisplay + " — gratis, 24/7." : "We couldn't send your form. Please call " + g.phoneDisplay + " instead — free, 24/7.";
+    }
+    function sendOk(){
+      if (settled) return; settled = true;
+      showSuccess();
       setTimeout(function(){ location.href = "thank-you.html?geo=" + encodeURIComponent(slug) + "&ct=motorcycle-accident" + (LANG === "es" ? "&lang=es" : ""); }, 500);
     }
-    document.getElementById("s-name").textContent = name ? ", " + name.split(" ")[0] : "";
-    show(4);
+    setTimeout(function(){ sendFail("timeout", "no response after 12s"); }, 12000);
+    try {
+      fetch(CONFIG.formEndpoint, { method:"POST", headers:{"Content-Type":"application/json","Accept":"application/json"}, body:JSON.stringify(payload) })
+        .then(function(r){
+          if (r.ok) { sendOk(); }
+          else { r.text().then(function(t){ sendFail(r.status, t); }, function(){ sendFail(r.status, ""); }); }
+        }, function(e2){ sendFail("network", String(e2)); });
+    } catch(e2){ sendFail("exception", String(e2)); }
   });
 
 
