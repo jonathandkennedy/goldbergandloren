@@ -13,6 +13,9 @@ Container: GTM-NK6KTLNL · Phone: (512) 960-3887 · Add ?lang=es for Spanish
 | Dallas-Fort Worth | Car Accident | https://results.goldbergloren.com/car-accident-dallas-fort-worth-tx.html |
 | Dallas-Fort Worth | Truck Accident | https://results.goldbergloren.com/truck-accident-dallas-fort-worth-tx.html |
 | Dallas-Fort Worth | Motorcycle Accident | https://results.goldbergloren.com/motorcycle-accident-dallas-fort-worth-tx.html |
+| Fort Worth | Car Accident | https://results.goldbergloren.com/car-accident-fort-worth-tx.html |
+| Fort Worth | Truck Accident | https://results.goldbergloren.com/truck-accident-fort-worth-tx.html |
+| Fort Worth | Motorcycle Accident | https://results.goldbergloren.com/motorcycle-accident-fort-worth-tx.html |
 | Arlington | Car Accident | https://results.goldbergloren.com/car-accident-arlington-tx.html |
 | Arlington | Truck Accident | https://results.goldbergloren.com/truck-accident-arlington-tx.html |
 | Arlington | Motorcycle Accident | https://results.goldbergloren.com/motorcycle-accident-arlington-tx.html |
