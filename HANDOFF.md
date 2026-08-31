@@ -1,9 +1,20 @@
 # Goldberg & Loren Landers — Deploy & Operate
 
-## What's here (27 pages + hub)
+## What's here (3 masters × 21 baked cities + hub + thank-you + 404)
 - Masters: `car-accident.html` · `truck-accident.html` · `motorcycle-accident.html`
-- 24 baked city variants: each master × portland-or, los-angeles-ca, las-vegas-nv,
-  fresno-ca, boise-id, fargo-nd, midland-tx, plantation-fl
+- 63 baked city variants: each master × portland-or, los-angeles-ca, las-vegas-nv,
+  fresno-ca, boise-id, fargo-nd, midland-tx, plantation-fl + 13 TX markets
+  (austin, midland, and the DFW set incl. fort-worth-tx, added 2026-08-31 —
+  the Fort Worth ads campaign previously had no city page and 404'd)
+- `404.html` — branded not-found page (Vercel serves it automatically for bad
+  URLs): call CTA + links to the 3 masters, GTM-NK6KTLNL, pushes call_click
+  with geo="404" so rescued clicks are visible. Raw Vercel 404 is gone.
+- DFW pages (2026-08-31, per PPC audit): office line no longer shows the
+  Lakeway street address to DFW searchers — now "Serving Dallas–Fort Worth ·
+  21 offices in 16 states · Intake open 24/7". Austin & Midland keep their
+  original office lines. PENDING from CallRail: a DFW-local tracking number —
+  when provisioned, set per-city `phone`/`phoneDisplay` in `#geo-data` for the
+  DFW slugs and re-bake (the geo system already supports per-city numbers).
 - `index.html` — internal review hub (never send ad traffic here)
 - `img/` — optimized assets (~90KB/page mobile) · `generate-geo.mjs` — city baker
 - Every page: EN/ES switch (header toggle + "Se Habla Español" benefit chip),
