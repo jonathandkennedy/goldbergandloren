@@ -9,12 +9,28 @@
 - `404.html` — branded not-found page (Vercel serves it automatically for bad
   URLs): call CTA + links to the 3 masters, GTM-NK6KTLNL, pushes call_click
   with geo="404" so rescued clicks are visible. Raw Vercel 404 is gone.
+- KW-TEST landers (2026-09-01): `{car,truck,motorcycle}-accident-{dallas-tx,
+  fort-worth-tx}-kw.html` — copies of the baked pages whose headline adapts to
+  the ad keyword via `?kw={keyword}` (whitelist only: attorney/lawyer +
+  "near me" pick from fixed strings; raw query text never touches the DOM;
+  no/unrecognized kw = control page unchanged, so these are safe to send any
+  traffic). Leads carry `variant:"kw-test"` + sanitized kw; thank-you redirect
+  adds `&variant=kw`; a `kw_variant` dataLayer event fires. noindex. Built by
+  `node generate-kw-test.mjs` — RE-RUN IT whenever the Dallas/Fort Worth pages
+  are re-baked. Evaluate after 2-3 weeks: QS landing-page-experience + conv
+  rate on the test ad groups vs control, then roll wider or delete.
 - DFW pages (2026-08-31, per PPC audit): office line no longer shows the
   Lakeway street address to DFW searchers — now "Serving Dallas–Fort Worth ·
   21 offices in 16 states · Intake open 24/7". Austin & Midland keep their
-  original office lines. PENDING from CallRail: a DFW-local tracking number —
-  when provisioned, set per-city `phone`/`phoneDisplay` in `#geo-data` for the
-  DFW slugs and re-bake (the geo system already supports per-city numbers).
+  original office lines.
+- DFW number (2026-08-31): all 12 DFW pages display CallRail tracking number
+  **(214) 466-2129** (tel links, visible text, office line). All other markets
+  still ring (512) 960-3887. IN CALLRAIL: the Google Ads keyword pool's
+  "numbers to swap" list must include (214) 466-2129 (alongside 512-960-3887)
+  or DFW ad visitors won't get session numbers — verify with ?gclid=test on a
+  Dallas page. thank-you.html still says callbacks come from (512) 960-3887 —
+  that's intake's outbound caller ID; if intake starts dialing DFW leads from
+  the 214 number, make that line geo-aware.
 - `index.html` — internal review hub (never send ad traffic here)
 - `img/` — optimized assets (~90KB/page mobile) · `generate-geo.mjs` — city baker
 - Every page: EN/ES switch (header toggle + "Se Habla Español" benefit chip),
