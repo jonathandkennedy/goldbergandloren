@@ -12,9 +12,15 @@
 - DFW pages (2026-08-31, per PPC audit): office line no longer shows the
   Lakeway street address to DFW searchers — now "Serving Dallas–Fort Worth ·
   21 offices in 16 states · Intake open 24/7". Austin & Midland keep their
-  original office lines. PENDING from CallRail: a DFW-local tracking number —
-  when provisioned, set per-city `phone`/`phoneDisplay` in `#geo-data` for the
-  DFW slugs and re-bake (the geo system already supports per-city numbers).
+  original office lines.
+- DFW number (2026-08-31): all 12 DFW pages display CallRail tracking number
+  **(214) 466-2129** (tel links, visible text, office line). All other markets
+  still ring (512) 960-3887. IN CALLRAIL: the Google Ads keyword pool's
+  "numbers to swap" list must include (214) 466-2129 (alongside 512-960-3887)
+  or DFW ad visitors won't get session numbers — verify with ?gclid=test on a
+  Dallas page. thank-you.html still says callbacks come from (512) 960-3887 —
+  that's intake's outbound caller ID; if intake starts dialing DFW leads from
+  the 214 number, make that line geo-aware.
 - `index.html` — internal review hub (never send ad traffic here)
 - `img/` — optimized assets (~90KB/page mobile) · `generate-geo.mjs` — city baker
 - Every page: EN/ES switch (header toggle + "Se Habla Español" benefit chip),

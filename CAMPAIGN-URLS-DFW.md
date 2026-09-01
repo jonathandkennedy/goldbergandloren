@@ -1,6 +1,6 @@
 # Dallas–Fort Worth campaign URLs
 
-Container: GTM-NK6KTLNL · Phone: (512) 960-3887 · Add ?lang=es for Spanish
+Container: GTM-NK6KTLNL · Phone: (214) 466-2129 (CallRail DFW tracking number, 2026-08-31; other markets ring (512) 960-3887) · Add ?lang=es for Spanish
 
 | Market | Case type | Final URL |
 |---|---|---|
