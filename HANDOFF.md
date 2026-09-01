@@ -9,6 +9,12 @@
 - `404.html` — branded not-found page (Vercel serves it automatically for bad
   URLs): call CTA + links to the 3 masters, GTM-NK6KTLNL, pushes call_click
   with geo="404" so rescued clicks are visible. Raw Vercel 404 is gone.
+- Microsoft Clarity (2026-09-01): project `ybpj42my1c` — session recordings +
+  heatmaps on every visitor-facing page (masters, all baked city pages, kw-test
+  pages, thank-you, 404). The snippet lives in the 3 masters' head (and
+  thank-you/404 directly), so baking carries it everywhere; index.html (internal
+  hub) deliberately has NO tag so internal visits don't pollute recordings.
+  Dashboard: clarity.microsoft.com.
 - KW-TEST landers (2026-09-01): `{car,truck,motorcycle}-accident-{dallas-tx,
   fort-worth-tx}-kw.html` — copies of the baked pages whose headline adapts to
   the ad keyword via `?kw={keyword}` (whitelist only: attorney/lawyer +
