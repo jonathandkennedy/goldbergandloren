@@ -16,6 +16,29 @@ Container: GTM-NK6KTLNL · Phone: (214) 466-2129 (CallRail DFW tracking number, 
 | Fort Worth | Car Accident | https://results.goldbergloren.com/car-accident-fort-worth-tx.html |
 | Fort Worth | Truck Accident | https://results.goldbergloren.com/truck-accident-fort-worth-tx.html |
 | Fort Worth | Motorcycle Accident | https://results.goldbergloren.com/motorcycle-accident-fort-worth-tx.html |
+
+## Keyword-insertion TEST landers (Dallas + Fort Worth only)
+
+The headline adapts to the ad keyword. Set the ad group's **final URL** to the
+test page **with `?kw={keyword}`** — Google fills `{keyword}` with the matched
+keyword at click time:
+
+| Market | Case type | Test final URL |
+|---|---|---|
+| Dallas | Car Accident | https://results.goldbergloren.com/car-accident-dallas-tx-kw.html?kw={keyword} |
+| Dallas | Truck Accident | https://results.goldbergloren.com/truck-accident-dallas-tx-kw.html?kw={keyword} |
+| Dallas | Motorcycle Accident | https://results.goldbergloren.com/motorcycle-accident-dallas-tx-kw.html?kw={keyword} |
+| Fort Worth | Car Accident | https://results.goldbergloren.com/car-accident-fort-worth-tx-kw.html?kw={keyword} |
+| Fort Worth | Truck Accident | https://results.goldbergloren.com/truck-accident-fort-worth-tx-kw.html?kw={keyword} |
+| Fort Worth | Motorcycle Accident | https://results.goldbergloren.com/motorcycle-accident-fort-worth-tx-kw.html?kw={keyword} |
+
+Behavior (whitelist only — the raw query never touches the page): keyword
+contains "attorney"/"lawyer" → headline becomes "Need a Dallas Car Accident
+Attorney?" (or Lawyer); plus "near me" → "Dallas Car Accident Attorneys Near
+You"; "attorney" also swaps lawyers→attorneys in the subhead. Anything
+else, or no kw param → the standard proven page, unchanged. Test leads carry
+`variant:"kw-test"` + the keyword in the intake email, and the thank-you URL
+gains `&variant=kw` for GA4 segmentation. Pages are noindex.
 | Arlington | Car Accident | https://results.goldbergloren.com/car-accident-arlington-tx.html |
 | Arlington | Truck Accident | https://results.goldbergloren.com/truck-accident-arlington-tx.html |
 | Arlington | Motorcycle Accident | https://results.goldbergloren.com/motorcycle-accident-arlington-tx.html |
