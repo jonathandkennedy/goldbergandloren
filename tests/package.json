@@ -1,0 +1,6 @@
+{
+  "name": "lander-e2e-tests",
+  "private": true,
+  "type": "module",
+  "dependencies": { "playwright": "^1.47.0" }
+}

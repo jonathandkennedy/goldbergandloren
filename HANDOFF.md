@@ -1,5 +1,10 @@
 # Goldberg & Loren Landers — Deploy & Operate
 
+> Cloning this system for a NEW client? Start at **TEMPLATE-HANDOFF.md** —
+> the client-agnostic build playbook. Browser test suites live in `tests/`
+> (`cd tests && npm i && node form-e2e.mjs && node kw-e2e.mjs`; set
+> CHROME_PATH if using a preinstalled Chromium) — run before every deploy.
+
 ## What's here (3 masters × 21 baked cities + hub + thank-you + 404)
 - Masters: `car-accident.html` · `truck-accident.html` · `motorcycle-accident.html`
 - 63 baked city variants: each master × portland-or, los-angeles-ca, las-vegas-nv,
