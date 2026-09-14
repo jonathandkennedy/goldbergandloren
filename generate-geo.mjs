@@ -42,6 +42,17 @@ function bake(slug) {
       `$1${text}$3`
     );
   }
+  // footer cross-links: point case-type links at this city, mark the current city
+  const stem0 = basename(path, ".html");
+  out = out.replace(
+    /data-xcase="([a-z-]+)" href="[^"]*"/g,
+    (_, xcase) => `data-xcase="${xcase}" href="${xcase}-${slug}.html"`
+  );
+  out = out.replace(
+    new RegExp(`<a href="${stem0}-${slug}\\.html">([^<]*)</a>`, "g"),
+    `<span class="f-city cur">$1</span>`
+  );
+
   // phone: every tel href + every visible number
   out = out.replace(/href="tel:\+1\d+"/g, `href="tel:${g.phone}"`);
   out = out.replace(/(<(span|strong)\b[^>]*class="js-tel-text"[^>]*>)[^<]*(<\/\2>)/g, `$1${esc(g.phoneDisplay)}$3`);

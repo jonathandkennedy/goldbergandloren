@@ -64,7 +64,8 @@ code{background:#eef3f2;border-radius:3px;padding:1px 5px;font-size:.72rem}
 <p class="kick">Retainer Reach · Internal Review</p>
 <h1>Goldberg &amp; Loren — Landers</h1>
 <p class="note">${total} pages · ${slugs.length} markets · every page has an EN/ES switch (header toggle or the "Se Habla Español" chip) · add <code>?lang=es</code> to any URL to land in Spanish · national pages accept <code>?geo=frisco-tx</code> etc. · forms redirect to <code>/thank-you.html</code></p>
-${body}<p class="tip">This hub is for review only — never send ad traffic here. Campaign final URLs go directly to a city page.</p>
+${body}<section><h2>Shared Pages</h2><div class="links"><a href="thank-you.html?geo=austin-tx&ct=car-accident">Thank You (post-submit)</a><a href="privacy-policy.html">Privacy Policy</a><a href="terms.html">Terms of Use</a><a href="404.html">404 Page</a></div></section>
+<p class="tip">This hub is for review only — never send ad traffic here. Campaign final URLs go directly to a city page.</p>
 </div></body></html>
 `);
 console.log(`hub rebuilt — ${slugs.length} markets, ${total} pages`);

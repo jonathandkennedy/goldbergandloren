@@ -46,6 +46,8 @@ h1{font-size:clamp(1.7rem,5vw,2.2rem);font-weight:800;letter-spacing:-.02em;colo
 .btn svg{width:18px;height:18px;flex:none}
 footer{padding:18px 20px 26px;text-align:center;font-size:.68rem;color:var(--slate);line-height:1.6}
 footer p{max-width:70em;margin:0 auto}
+footer a{color:var(--navy);font-weight:600;text-decoration:none}
+footer a:hover{color:var(--btn)}
 </style>
 </head>
 <body>
@@ -71,7 +73,7 @@ footer p{max-width:70em;margin:0 auto}
 </main>
 <footer>
   <p data-t="foot">Attorney Advertising. Prior results do not guarantee a similar outcome. No attorney fees unless we recover for you; court costs and case expenses may apply. © <span id="yr">2026</span> Goldberg &amp; Loren.</p>
-  <p style="margin-top:6px"><a href="mailto:intakes@goldbergloren.com" style="color:var(--navy);font-weight:600;text-decoration:none">intakes@goldbergloren.com</a></p>
+  <p style="margin-top:6px"><a href="privacy-policy.html" data-t="fpriv">Privacy Policy</a> · <a href="terms.html" data-t="fterms">Terms of Use</a> · <a href="mailto:intakes@goldbergloren.com">intakes@goldbergloren.com</a></p>
 </footer>
 <script>
 (function(){
@@ -106,6 +108,7 @@ footer p{max-width:70em;margin:0 auto}
       s2: "Un abogado le llama", s2s: "Una consulta gratuita y confidencial sobre sus opciones.",
       s3: "Usted decide", s3s: "Sin presión, sin compromiso — y sin honorarios a menos que ganemos.",
       btn: "¿No puede esperar? Llame ahora — gratis 24/7",
+      fpriv: "Política de Privacidad", fterms: "Términos de Uso",
       foot: "Publicidad de Abogados. Los resultados anteriores no garantizan un resultado similar. Sin honorarios de abogado a menos que recuperemos para usted; pueden aplicar costos judiciales y gastos del caso. © 2026 Goldberg & Loren."
     };
     for (var k in T) { if (!T[k]) continue; var el = document.querySelector('[data-t="' + k + '"]'); if (el) el.textContent = T[k]; }

@@ -112,13 +112,35 @@ container IDs for Oregon, Midland TX, Plantation FL accounts (+ any others).
 Inside each container: GA4 tag + Google Ads conversion tags fired on those two
 events. **Count calls as conversions** — 56% of legal conversions are calls.
 
+## Legal pages + footer (2026-09-14)
+- `privacy-policy.html` and `terms.html` — subdomain-specific, written for THESE
+  pages (Formspree/Vercel/Google as the actual processors, TCPA consent language
+  matching the form, state privacy rights incl. CA/TX/FL/OR, do-not-sell anchor
+  at `privacy-policy.html#do-not-sell`). English only, with a Spanish notice
+  directing ES speakers to call; translating legal text is a counsel decision.
+  ⚠️ **These are drafted documents, not legal advice — the firm's own counsel
+  must review and reconcile them with the policy on goldbergloren.com before
+  they're relied on.** Governing-law clause (Terms §15) in particular is a
+  placeholder ("state where the office handling your inquiry is located").
+- Real footer on every lander: firm identity + per-market office line + tap-to-call
+  (auto-picks the market's tracking number) + intake email; practice-area
+  cross-links (same city, other case types); location cross-links (same case type,
+  all other cities, current city rendered as plain text); legal bar with Privacy /
+  Terms / Do Not Sell. All footer copy localizes to Spanish.
+- Cross-links are deliberately footer-only — every exit link costs conversion
+  (Unbounce: 13.5% CVR at 1 link → 10.5% at 5+), and the landers are noindex so
+  cross-links earn no SEO. Do NOT add them higher up the page.
+- Footer city list regenerates from geo data at bake time; `generate-geo.mjs`
+  rewrites `data-xcase` hrefs per city and marks the current city. Nothing to
+  maintain by hand when a market is added.
+- Legal links also on `thank-you.html` and `404.html`.
+
 ## Cookies / privacy stance
 No cookie banner: US-only traffic, no state requires EU-style opt-in consent,
-and a banner costs conversion. Implemented instead: privacy policy link +
-"Do Not Sell or Share My Personal Information" footer link (CCPA-style notice,
-currently → their privacy policy; swap href if the firm provides a dedicated
-opt-out page), TCPA consent checkbox on the form, full attorney-advertising
-disclaimer block. If they ever target EU/UK traffic (they shouldn't), revisit.
+and a banner costs conversion. Implemented instead: Privacy Policy + Terms of Use
++ "Do Not Sell or Share My Personal Information" footer links (all on-subdomain),
+TCPA consent checkbox on the form, full attorney-advertising disclaimer block.
+If they ever target EU/UK traffic (they shouldn't), revisit.
 
 ## Geo system
 - Baked pages (use for campaigns): zero flash, works without JS.
