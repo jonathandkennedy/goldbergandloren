@@ -1,3 +1,9 @@
-HANDOFF.md
-README.md
-generate-geo.mjs
+# Nothing here is meant for the public site — only .html and img/ are served.
+# Keep internal docs, generators, and the QA harness out of the deployment,
+# otherwise they are readable at https://results.goldbergloren.com/<filename>.
+*.md
+*.mjs
+tests/
+package.json
+package-lock.json
+node_modules/
