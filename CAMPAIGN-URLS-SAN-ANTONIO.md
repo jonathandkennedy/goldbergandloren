@@ -1,9 +1,8 @@
 # San Antonio campaign URLs
 
-Container: GTM-NK6KTLNL · Phone: (512) 960-3887 (national CallRail tracking
-number — provision a 210-local number in CallRail and bake it in for the same
-Quality Score lift the DFW pages got from (214) 466-2129) · Add ?lang=es for
-Spanish
+Container: GTM-NK6KTLNL · Phone: (210) 880-6076 (CallRail San Antonio tracking
+number, 2026-09-17 — must be in the Google Ads keyword pool's "numbers to
+swap" list alongside 512-960-3887 and 214-466-2129) · Add ?lang=es for Spanish
 
 | Market | Case type | Final URL |
 |---|---|---|

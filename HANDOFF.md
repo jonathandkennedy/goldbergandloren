@@ -9,8 +9,10 @@
 - Masters: `car-accident.html` · `truck-accident.html` · `motorcycle-accident.html`
 - 66 baked city variants: each master × portland-or, los-angeles-ca, las-vegas-nv,
   fresno-ca, boise-id, fargo-nd, plantation-fl + 15 TX markets
-  (austin, san-antonio (added 2026-09-17: national 512 number + GTM-NK6KTLNL;
-  provision a 210-local CallRail number and bake it in like the DFW 214),
+  (austin, san-antonio (added 2026-09-17: GTM-NK6KTLNL, CallRail tracking
+  number **(210) 880-6076** on all 3 SA pages — IN CALLRAIL add it to the
+  keyword pool's "numbers to swap" list alongside 512/214 or SA ad visitors
+  won't get session numbers; verify with ?gclid=test),
   midland, and the DFW set incl. fort-worth-tx, added 2026-08-31 —
   the Fort Worth ads campaign previously had no city page and 404'd)
 - `404.html` — branded not-found page (Vercel serves it automatically for bad
