@@ -7,9 +7,10 @@ const CASES = [
   ["car-accident", "Car Accidents"],
   ["truck-accident", "Truck Accidents"],
   ["motorcycle-accident", "Motorcycle Accidents"],
+  ["rideshare-accident", "Rideshare Accidents"],
 ];
 const REGIONS = [
-  ["Texas — Austin", ["austin-tx"]],
+  ["Texas — Austin & San Antonio", ["austin-tx","san-antonio-tx"]],
   ["Texas — Dallas–Fort Worth", ["dallas-tx","downtown-dallas-tx","dallas-fort-worth-tx","fort-worth-tx","arlington-tx","grapevine-tx","rockwall-tx","frisco-tx","plano-tx","celina-tx","prosper-tx","mckinney-tx"]],
   ["Texas — West", ["midland-tx"]],
   ["West & Northwest", ["portland-or","boise-id","las-vegas-nv","los-angeles-ca","fresno-ca"]],

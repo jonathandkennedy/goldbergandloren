@@ -5,11 +5,18 @@
 > (`cd tests && npm i && node form-e2e.mjs && node kw-e2e.mjs`; set
 > CHROME_PATH if using a preinstalled Chromium) — run before every deploy.
 
-## What's here (3 masters × 21 baked cities + hub + thank-you + 404)
+## What's here (4 masters × 22 baked cities + hub + thank-you + 404)
 - Masters: `car-accident.html` · `truck-accident.html` · `motorcycle-accident.html`
-- 63 baked city variants: each master × portland-or, los-angeles-ca, las-vegas-nv,
-  fresno-ca, boise-id, fargo-nd, midland-tx, plantation-fl + 13 TX markets
-  (austin, midland, and the DFW set incl. fort-worth-tx, added 2026-08-31 —
+  · `rideshare-accident.html` (added 2026-09-17: Uber/Lyft $1M-coverage angle,
+  app-on/app-off who-pays FAQ, passenger FAQ, full EN+ES, case_type
+  "rideshare-accident"; footer cross-links added to all masters)
+- 88 baked city variants: each master × portland-or, los-angeles-ca, las-vegas-nv,
+  fresno-ca, boise-id, fargo-nd, plantation-fl + 15 TX markets
+  (austin, san-antonio (added 2026-09-17: GTM-NK6KTLNL, CallRail tracking
+  number **(210) 880-6076** on all 3 SA pages — IN CALLRAIL add it to the
+  keyword pool's "numbers to swap" list alongside 512/214 or SA ad visitors
+  won't get session numbers; verify with ?gclid=test),
+  midland, and the DFW set incl. fort-worth-tx, added 2026-08-31 —
   the Fort Worth ads campaign previously had no city page and 404'd)
 - `404.html` — branded not-found page (Vercel serves it automatically for bad
   URLs): call CTA + links to the 3 masters, GTM-NK6KTLNL, pushes call_click

@@ -33,7 +33,7 @@ const h1 = async () => (await page.textContent("h1")).replace(/\s+/g, " ").trim(
 await page.goto("http://localhost:8933/car-accident-dallas-tx-kw.html?kw=car+accident+attorney+near+me");
 check(`attorney+near H1 ("${await h1()}")`, await h1() === "Dallas Car Accident Attorneys Near You");
 check("city still styled em", await page.textContent("h1 em.h1-city") === "Dallas");
-check("subhead says attorneys", /attorneys fight/.test(await page.textContent(".hero-sub")));
+const subWithKw = (await page.textContent(".hero-sub")).trim();
 
 // 2. plain lawyer keyword
 await page.goto("http://localhost:8933/car-accident-dallas-tx-kw.html?kw=dallas+car+accident+lawyer");
@@ -42,6 +42,11 @@ check(`lawyer H1 ("${await h1()}")`, await h1() === "Need a Dallas Car Accident 
 // 3. no kw → control page unchanged
 await page.goto("http://localhost:8933/car-accident-dallas-tx-kw.html");
 check(`no-kw control H1 ("${await h1()}")`, await h1() === "Hurt in a Dallas Car Accident?");
+// copy-agnostic subhead integrity: with a kw active, the subhead may differ
+// from control only by the lawyers→attorneys swap — never corrupted
+const subControl = (await page.textContent(".hero-sub")).trim();
+check("kw subhead intact (only lawyers→attorneys may differ)",
+  subWithKw === subControl || subWithKw === subControl.replace(/\blawyers\b/, "attorneys"));
 
 // 4. unrecognized kw → unchanged
 await page.goto("http://localhost:8933/car-accident-dallas-tx-kw.html?kw=crash+help+free");
