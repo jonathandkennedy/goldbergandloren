@@ -63,3 +63,6 @@ gains `&variant=kw` for GA4 segmentation. Pages are noindex.
 | McKinney | Car Accident | https://results.goldbergloren.com/car-accident-mckinney-tx.html |
 | McKinney | Truck Accident | https://results.goldbergloren.com/truck-accident-mckinney-tx.html |
 | McKinney | Motorcycle Accident | https://results.goldbergloren.com/motorcycle-accident-mckinney-tx.html |
+
+Rideshare (Uber/Lyft) pages exist for every market: swap the case slug to
+`rideshare-accident`, e.g. https://results.goldbergloren.com/rideshare-accident-dallas-tx.html

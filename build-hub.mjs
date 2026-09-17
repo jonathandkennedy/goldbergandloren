@@ -7,6 +7,7 @@ const CASES = [
   ["car-accident", "Car Accidents"],
   ["truck-accident", "Truck Accidents"],
   ["motorcycle-accident", "Motorcycle Accidents"],
+  ["rideshare-accident", "Rideshare Accidents"],
 ];
 const REGIONS = [
   ["Texas — Austin & San Antonio", ["austin-tx","san-antonio-tx"]],

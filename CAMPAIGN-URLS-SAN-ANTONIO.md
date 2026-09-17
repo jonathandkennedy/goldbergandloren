@@ -9,3 +9,4 @@ swap" list alongside 512-960-3887 and 214-466-2129) · Add ?lang=es for Spanish
 | San Antonio | Car Accident | https://results.goldbergloren.com/car-accident-san-antonio-tx.html |
 | San Antonio | Truck Accident | https://results.goldbergloren.com/truck-accident-san-antonio-tx.html |
 | San Antonio | Motorcycle Accident | https://results.goldbergloren.com/motorcycle-accident-san-antonio-tx.html |
+| San Antonio | Rideshare (Uber/Lyft) | https://results.goldbergloren.com/rideshare-accident-san-antonio-tx.html |

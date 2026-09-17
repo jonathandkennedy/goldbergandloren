@@ -5,9 +5,12 @@
 > (`cd tests && npm i && node form-e2e.mjs && node kw-e2e.mjs`; set
 > CHROME_PATH if using a preinstalled Chromium) — run before every deploy.
 
-## What's here (3 masters × 22 baked cities + hub + thank-you + 404)
+## What's here (4 masters × 22 baked cities + hub + thank-you + 404)
 - Masters: `car-accident.html` · `truck-accident.html` · `motorcycle-accident.html`
-- 66 baked city variants: each master × portland-or, los-angeles-ca, las-vegas-nv,
+  · `rideshare-accident.html` (added 2026-09-17: Uber/Lyft $1M-coverage angle,
+  app-on/app-off who-pays FAQ, passenger FAQ, full EN+ES, case_type
+  "rideshare-accident"; footer cross-links added to all masters)
+- 88 baked city variants: each master × portland-or, los-angeles-ca, las-vegas-nv,
   fresno-ca, boise-id, fargo-nd, plantation-fl + 15 TX markets
   (austin, san-antonio (added 2026-09-17: GTM-NK6KTLNL, CallRail tracking
   number **(210) 880-6076** on all 3 SA pages — IN CALLRAIL add it to the
