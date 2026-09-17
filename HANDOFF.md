@@ -5,11 +5,13 @@
 > (`cd tests && npm i && node form-e2e.mjs && node kw-e2e.mjs`; set
 > CHROME_PATH if using a preinstalled Chromium) — run before every deploy.
 
-## What's here (3 masters × 21 baked cities + hub + thank-you + 404)
+## What's here (3 masters × 22 baked cities + hub + thank-you + 404)
 - Masters: `car-accident.html` · `truck-accident.html` · `motorcycle-accident.html`
-- 63 baked city variants: each master × portland-or, los-angeles-ca, las-vegas-nv,
-  fresno-ca, boise-id, fargo-nd, midland-tx, plantation-fl + 13 TX markets
-  (austin, midland, and the DFW set incl. fort-worth-tx, added 2026-08-31 —
+- 66 baked city variants: each master × portland-or, los-angeles-ca, las-vegas-nv,
+  fresno-ca, boise-id, fargo-nd, plantation-fl + 15 TX markets
+  (austin, san-antonio (added 2026-09-17: national 512 number + GTM-NK6KTLNL;
+  provision a 210-local CallRail number and bake it in like the DFW 214),
+  midland, and the DFW set incl. fort-worth-tx, added 2026-08-31 —
   the Fort Worth ads campaign previously had no city page and 404'd)
 - `404.html` — branded not-found page (Vercel serves it automatically for bad
   URLs): call CTA + links to the 3 masters, GTM-NK6KTLNL, pushes call_click
