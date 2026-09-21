@@ -33,7 +33,7 @@ await page.route(/formspree\.io/, async route => {
   if (mode === "fail") return route.fulfill({ status: 403, headers: CORS, contentType: "application/json", body: JSON.stringify({ error: "domain not allowed" }) });
   return route.fulfill({ status: 200, headers: CORS, contentType: "application/json", body: JSON.stringify({ ok: true }) });
 });
-await page.route(/googletagmanager\.com/, route => route.abort());
+await page.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com/, route => route.abort());
 
 let failures = 0;
 const check = (label, cond) => { console.log((cond ? "PASS " : "FAIL ") + label); if (!cond) failures++; };

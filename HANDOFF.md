@@ -27,6 +27,17 @@
   thank-you/404 directly), so baking carries it everywhere; index.html (internal
   hub) deliberately has NO tag so internal visits don't pollute recordings.
   Dashboard: clarity.microsoft.com.
+- ClickCease (2026-09-21): click-fraud detection/blocking on all 102
+  visitor-facing pages (4 masters + every baked city page + kw-test pages,
+  thank-you, 404, privacy-policy, terms). Async script in the head after the
+  Clarity tag; the `<noscript>` iframe sits after `<body>` (not in the head —
+  an iframe inside a head `<noscript>` is invalid HTML and browsers relocate
+  it), landing right below the GTM noscript on baked pages. index.html
+  (internal hub) deliberately has NO tag, same reasoning as Clarity. Account
+  id `1c12dbadd579836d7d83166cb5b124b3` (ob.buzzfighter.com is ClickCease's
+  CDN). IN CLICKCEASE: connect the Google Ads account (639-774-4725) so it can
+  actually add fraudulent IPs to the account's exclusion list — the tag alone
+  only detects. The test suites block buzzfighter.com alongside GTM/Clarity.
 - KW-TEST landers (2026-09-01): `{car,truck,motorcycle}-accident-{dallas-tx,
   fort-worth-tx}-kw.html` — copies of the baked pages whose headline adapts to
   the ad keyword via `?kw={keyword}` (whitelist only: attorney/lawyer +
