@@ -49,6 +49,7 @@ already wired and battle-tested:
 | `{{INTAKE_EMAIL}}` | Footer + where Formspree notifies (must be watched 24/7) | intakes@goldbergloren.com |
 | `{{GTM_*}}` | Container ID per market (or one site-wide) | GTM-NK6KTLNL (DFW) |
 | `{{CLARITY_ID}}` | Clarity project — **one per client** | ybpj42my1c |
+| `{{CLICKCEASE_ID}}` | ClickCease account hash in the tag URL — **one per client** | 1c12dbadd579836d7d83166cb5b124b3 |
 | `{{PROD_DOMAIN}}` | Subdomain of the CLIENT's domain | results.goldbergloren.com |
 | `{{PRIVACY_URL}}` | Client's privacy policy | goldbergloren.com/privacy-policy/ |
 | `{{TRUST_STATS}}` | The 4 stat tiles — must be real | $550M+ / Since 1994 / 20,000+ / rating |
@@ -165,6 +166,13 @@ carries it everywhere; leave `index.html` untagged). **Settings → Setup →
 Advanced → Cookies OFF** — otherwise Clarity's consent banner appears over
 the bottom of the page, exactly where the mobile call CTA lives. This
 banner measurably killed conversions for a week on the reference client.
+
+**ClickCease** (click-fraud protection, optional but standard here) — one
+account per client; async script in the masters' head, `<noscript>` iframe
+after `<body>` (never inside the head — invalid HTML there). Bake carries it
+everywhere; leave `index.html` untagged. Connect the client's Google Ads
+account inside ClickCease or it only detects and never blocks. Add the tag
+host to the E2E suites' aborted routes so tests stay hermetic.
 
 **Google Ads hygiene** (from the reference client's audit — hand this to
 whoever runs the account): Max-Clicks needs a CPC cap (~$100–125) or single

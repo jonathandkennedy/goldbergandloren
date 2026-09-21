@@ -23,7 +23,7 @@ await page.route(/formspree\.io/, async route => {
   posts.push(JSON.parse(route.request().postData()));
   return route.fulfill({ status: 200, headers: CORS, contentType: "application/json", body: '{"ok":true}' });
 });
-await page.route(/googletagmanager\.com/, r => r.abort());
+await page.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com/, r => r.abort());
 
 let failures = 0;
 const check = (label, cond) => { console.log((cond ? "PASS " : "FAIL ") + label); if (!cond) failures++; };
