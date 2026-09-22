@@ -388,5 +388,7 @@ how to read results: `AUSTIN-HEADINGS-TEST.md`.**
 - **Tagged for the split:** `variant: "austin-headings"` on leads,
   `&variant=austin-headings` on the thank-you URL, and a `page_variant` GTM event.
 - `noindex`, like every lander.
-- **Flagged to the client:** "Over $500 Million **Won**" is his wording. The firm
-  says *recovered* everywhere else, and "Recovered" is the safer heading.
+- Listed in the hub under its own section, **NEW TAGs Landers**.
+- **"Over $500 Million Won" is the client's wording, kept as he wrote it.** The firm
+  says *recovered* everywhere else. It was flagged, and "Recovered" is a one-word
+  change if he ever wants it.
