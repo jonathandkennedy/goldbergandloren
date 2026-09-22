@@ -331,26 +331,38 @@ us"; ours routes to the lander's form, since there is no chat).
   Spanish: no overflow, clipping or wrapped labels. A 320px sweep now runs in
   the suite — it caught an 11px header overflow that mobile emulation had hidden.
 
-### Results used — and two figures deliberately left off
-New figures taken from the firm's own results page (client screenshots,
-2026-09-22), used verbatim:
+### Results used — sources for every figure
+From the firm's own results page (client screenshots, 2026-09-22), verbatim:
 - **$8.75 Million** settlement — premises liability, Ben Lomond, CA, Aug 2025
 - **$4.5 Million** settlement — auto accident, Bonanza, OR, Apr 2025 (the
   description is truncated at "…requiring multiple surgeries." — the firm's
   full sentence runs on, and it was cut rather than completed from guesswork)
 - **$1,750,000** wrongful death (ticker only on the firm's site — no details)
 
-Plus, from the landers: $2.5M pedestrian (193 days) and the $1,025,000
+Confirmed by the client, 2026-09-22:
+- **$14.6 Million** settlement — construction accident. Lexinter's listing for
+  the firm: "$14.6 million for a construction site injury." It now leads the
+  settlements page and the ticker.
+- **The landers had this as "$14,000,000" — corrected to $14,600,000** in all
+  four masters and re-baked: 98 pages (92 city + 6 keyword-test), one line each,
+  verified by diff to be the only change. "Settled in 289 days" is unchanged.
+- This also resolves the earlier worry: the firm's results page labels $8.75M
+  its "largest settlement", but that page is "a selection of recent" results —
+  the $14.6M case evidently predates it.
+
+From the landers: $2.5M pedestrian (settled in 193 days) and the $1,025,000
 policy-limits story.
 
-**Not used: the landers' "$8,700,000 trucking" and "$14,000,000 construction"
-settlements.** The firm's own results page lists **$8.75M as its largest
-settlement**, which a $14M settlement would contradict — and $8.7M "trucking" is
-suspiciously close to $8.75M *premises liability*. Either the landers carry an
-older or different case list, or two figures are mislabelled. They stay off the
-newly indexable pages until the firm confirms them; **the landers still show
-both.** The support suite now holds an allowlist of sourced dollar figures and
-fails on any other, so a new number cannot slip in unverified.
+**Still open:**
+- **"$8,700,000 trucking" (landers only) — not used on the shared pages.** It is
+  suspiciously close to the $8.75M *premises liability* case and no source
+  confirms a trucking case at that figure. Needs the firm's word.
+- **Pedestrian figures:** Lexinter also lists "$3.5 million for a pedestrian
+  accident"; the landers show $2,500,000 pedestrian. May be two different cases
+  — worth one question to the firm while confirming the trucking figure.
+
+The support suite holds an allowlist of sourced dollar figures and fails on any
+other, so a new number cannot slip onto these pages unverified.
 
 ### Copy dropped
 The "You talk to lawyers, not phone trees" chip is gone from the shared pages:

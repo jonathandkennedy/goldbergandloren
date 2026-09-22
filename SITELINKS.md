@@ -32,7 +32,7 @@ Pattern: `https://results.goldbergloren.com/<page>.html?geo=<city>&ct=<case-type
 |---|---|---|---|
 | **No Fee Unless We Win** | $0 upfront. We front every cost. | No recovery, no attorney fee. | `no-fee.html` |
 | **Free 24/7 Case Review** | A real person answers, 24/7. | Free, confidential, no pressure. | `case-review.html` |
-| **Recent Settlements** | Real settlements: $8.75M, $4.5M. | See the facts behind each one. | `settlements.html` |
+| **Recent Settlements** | Settlements: $14.6M, $8.75M, $4.5M. | See the facts behind each one. | `settlements.html` |
 | **Client Reviews** | Real Google reviews, real cases. | See what our clients say. | `reviews.html` |
 | **Maximize Your Payout** | With a lawyer: 4.4x more on avg. | First offers are low by design. | `maximize-compensation.html` |
 | **Meet Your Team** | 50+ trials taken to verdict. | We know the insurance playbook. | `our-team.html` |

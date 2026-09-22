@@ -268,6 +268,8 @@ h3{font-family:var(--serif);font-weight:700;color:var(--ink);line-height:1.2}
 .case-type{margin-top:24px}
 .case-meta{margin-top:8px;font-size:.72rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
 .case-body{margin-top:18px;font-size:1.02rem}
+.case-stack{display:grid;gap:22px}
+@media(min-width:860px){.case-stack{grid-auto-rows:1fr}.case-stack .case{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:26px 30px}.case-stack .case-amt{font-size:2.6rem}.case-stack .case-type{margin-top:0}.case-stack .case>div:last-child{text-align:right}}
 .case-feature{background:var(--navy-900);border-left-color:var(--gold-400);color:var(--on-navy);padding:36px 26px 38px}
 .case-feature .case-amt{color:#fff;font-size:clamp(2.35rem,9.4vw,4.3rem);white-space:nowrap}
 @media(min-width:600px){.case-feature{padding:44px 40px 46px}}
@@ -371,10 +373,13 @@ const ICON_FORM = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" s
 
 const BRAND = `<span class="brand"><span class="brand-name">GOLDBERG <i>&amp;</i> LOREN</span><span class="brand-sub">Injury Attorneys</span></span>`;
 
-// Every figure here is the firm's own: the first four and $1.75M from the
-// results ticker/cards on goldbergloren.com, $1,025,000 from the landers.
+// Every figure here is the firm's own: $4.5M, $8.75M and $1.75M from the
+// results ticker/cards on goldbergloren.com; $14.6M confirmed by the client
+// (Lexinter: "$14.6 million for a construction site injury"); $2.5M and
+// $1,025,000 from the landers.
 const TICKER = [
   ["$4,500,000", "Auto Accident", "Accidente de Auto"],
+  ["$14,600,000", "Construction Accident", "Accidente de Construcción"],
   ["$8,750,000", "Premises Liability", "Lesiones en Propiedad Ajena"],
   ["$2,500,000", "Pedestrian Accident", "Accidente Peatonal"],
   ["$1,750,000", "Wrongful Death", "Muerte por Negligencia"],
@@ -563,7 +568,7 @@ const PAGES = {
 },
 "settlements": {
   title: "Recent Settlements & Results | Goldberg & Loren",
-  desc: "Real settlements Goldberg & Loren recovered for injury clients — including $8.75M and $4.5M — with the facts behind each. $550M+ recovered since 1994.",
+  desc: "Real settlements Goldberg & Loren recovered for injury clients — including $14.6M and $8.75M — with the facts behind each. $550M+ recovered since 1994.",
   hero: {
     mark: "$550M+",
     noCtas: true,
@@ -581,11 +586,14 @@ const PAGES = {
     section("sec-cream", `
   ${secHead(["Featured Results", "Resultados Destacados"], ["Real cases. <em>Real recoveries.</em>", "Casos reales. <em>Recuperaciones reales.</em>"])}
   <div class="cases">
-    ${caseCard({ feature: true, amt: ["$8.75 Million", "$8.75 Millones"], kind: ["Settlement", "Acuerdo"], type: ["Premises Liability", "Lesiones en Propiedad Ajena"], meta: ["Ben Lomond, CA · August 2025", "Ben Lomond, CA · Agosto 2025"], body: ["A vendor was restocking merchandise at a store when a store employee struck her with a train of shopping carts. She suffered a herniated disc in her back from the collision.", "Una proveedora estaba reabasteciendo mercancía en una tienda cuando un empleado la golpeó con una fila de carritos de compras. Sufrió una hernia de disco en la espalda por el impacto."] })}
+    ${caseCard({ feature: true, amt: ["$14.6 Million", "$14.6 Millones"], kind: ["Settlement", "Acuerdo"], type: ["Construction Accident", "Accidente de Construcción"], meta: ["Settled in 289 days", "Resuelto en 289 días"], body: ["Recovered for a client injured on a construction site.", "Obtenido para un cliente lesionado en una obra de construcción."] })}
+    ${caseCard({ amt: ["$8.75 Million", "$8.75 Millones"], kind: ["Settlement", "Acuerdo"], type: ["Premises Liability", "Lesiones en Propiedad Ajena"], meta: ["Ben Lomond, CA · August 2025", "Ben Lomond, CA · Agosto 2025"], body: ["A vendor was restocking merchandise at a store when a store employee struck her with a train of shopping carts. She suffered a herniated disc in her back from the collision.", "Una proveedora estaba reabasteciendo mercancía en una tienda cuando un empleado la golpeó con una fila de carritos de compras. Sufrió una hernia de disco en la espalda por el impacto."] })}
     ${caseCard({ amt: ["$4.5 Million", "$4.5 Millones"], kind: ["Settlement", "Acuerdo"], type: ["Auto Accident", "Accidente de Auto"], meta: ["Bonanza, OR · April 2025", "Bonanza, OR · Abril 2025"], body: ["Our client was lawfully walking on the sidewalk when a driver exiting a driveway struck and ran over her. She sustained severe injuries requiring multiple surgeries.", "Nuestra clienta caminaba legalmente por la acera cuando un conductor que salía de una entrada la atropelló. Sufrió lesiones graves que requirieron múltiples cirugías."] })}
     ${caseCard({ amt: ["$1,025,000", "$1,025,000"], kind: ["Recovery", "Recuperación"], type: ["Commercial Vehicle", "Vehículo Comercial"], body: ["The insurer insisted the policy limit was the most our client could ever get. We recovered $750,000 more than their &ldquo;maximum&rdquo; — for an 8-year-old rear-ended by a commercial vehicle.", "La aseguradora insistió en que el límite de la póliza era lo máximo que nuestro cliente podría recibir. Recuperamos $750,000 más que su &laquo;máximo&raquo; — para un niño de 8 años impactado por detrás por un vehículo comercial."] })}
+    <div class="case-stack">
     ${caseCard({ amt: ["$2.5 Million", "$2.5 Millones"], kind: ["Settlement", "Acuerdo"], type: ["Pedestrian Accident", "Accidente Peatonal"], meta: ["Settled in 193 days", "Resuelto en 193 días"] })}
     ${caseCard({ amt: ["$1.75 Million", "$1.75 Millones"], kind: ["Recovery", "Recuperación"], type: ["Wrongful Death", "Muerte por Negligencia"] })}
+    </div>
   </div>
   ${t("p", "Prior results do not guarantee a similar outcome. Every case is unique and results depend on the facts and the applicable law.", "Los resultados anteriores no garantizan un resultado similar. Cada caso es único y los resultados dependen de los hechos y de la ley aplicable.", "fineprint")}`),
   ],

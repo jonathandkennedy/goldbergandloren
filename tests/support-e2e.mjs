@@ -286,8 +286,8 @@ check(`ticker exposes one list, hides ${lists.length - 1} loop copies`,
 
 // 24. every dollar figure on every page is a sourced one. Adding a figure means
 // verifying it against the firm's published results first, then adding it here.
-const SOURCED = new Set(["$4,500,000", "$8,750,000", "$2,500,000", "$1,750,000", "$1,025,000",
-  "$8.75 Million", "$4.5 Million", "$2.5 Million", "$1.75 Million", "$550M+", "$750,000", "$77,600", "$17,600", "$0"]);
+const SOURCED = new Set(["$4,500,000", "$14,600,000", "$8,750,000", "$2,500,000", "$1,750,000", "$1,025,000",
+  "$14.6 Million", "$8.75 Million", "$4.5 Million", "$2.5 Million", "$1.75 Million", "$550M+", "$750,000", "$77,600", "$17,600", "$0"]);
 for (const slug of PAGES) {
   await page.goto(HOST + slug + ".html");
   const text = await page.evaluate(() => document.body.innerText);
