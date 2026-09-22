@@ -197,7 +197,7 @@ trades). Evaluate on landing-page-experience QS + conv rate after 2–3 weeks.
 ## 7b. Shared support pages (sitelink destinations)
 
 `generate-support-pages.mjs` builds six shared pages, one per buying objection:
-`no-fee`, `case-review`, `settlements`, `reviews`, `maximize-compensation`,
+`no-fee`, `case-review`, `settlements`, `reviews`, `maximize-settlement`,
 `our-team`. Google treats a distinct URL as a stronger sitelink destination than
 an anchor on the ad's own final URL, and anchors are occasionally disapproved for
 matching that final URL.
