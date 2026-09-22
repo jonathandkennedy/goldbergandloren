@@ -17,6 +17,11 @@ const SUPPORT = [
   ["maximize-compensation", "Maximize Your Compensation"],
   ["our-team", "Meet Your Team"],
 ];
+const TESTS = [
+  ["austin-car-accident-attorneys.html", "Austin Car — Client Heading Outline (vs car-accident-austin-tx)"],
+  ["car-accident-dallas-tx-kw.html?kw=car+accident+attorney+near+me", "Dallas Car — Keyword Headline"],
+  ["car-accident-fort-worth-tx-kw.html?kw=car+accident+lawyer", "Fort Worth Car — Keyword Headline"],
+];
 const REGIONS = [
   ["Texas — Austin & San Antonio", ["austin-tx","san-antonio-tx"]],
   ["Texas — Dallas–Fort Worth", ["dallas-tx","downtown-dallas-tx","dallas-fort-worth-tx","fort-worth-tx","arlington-tx","grapevine-tx","rockwall-tx","frisco-tx","plano-tx","celina-tx","prosper-tx","mckinney-tx"]],
@@ -75,6 +80,8 @@ code{background:#eef3f2;border-radius:3px;padding:1px 5px;font-size:.72rem}
 <p class="note">${total} pages · ${slugs.length} markets · every page has an EN/ES switch (header toggle or the "Se Habla Español" chip) · add <code>?lang=es</code> to any URL to land in Spanish · national pages accept <code>?geo=frisco-tx</code> etc. · forms redirect to <code>/thank-you.html</code></p>
 ${body}<section><h2>Shared Pages &mdash; Sitelink Destinations</h2><div class="links">${SUPPORT.map(([f, label]) => `<a href="${f}.html?geo=dallas-tx&ct=car-accident">${label}</a>`).join("")}</div>
 <p class="tip">One page serves every market: <code>?geo=</code> swaps the phone number and GTM container, <code>?ct=</code> points the return CTA at the matching lander, <code>?lang=es</code> lands in Spanish.</p></section>
+<section><h2>Test Variants</h2><div class="links">${TESTS.map(([f, label]) => `<a href="${f}">${label}</a>`).join("")}</div>
+<p class="tip">Each test page is a copy of a live lander with one thing changed, so a Google Ads experiment can split traffic against the original. Leads and thank-you URLs carry a <code>variant</code> tag.</p></section>
 <section><h2>Shared Pages &mdash; Utility</h2><div class="links"><a href="thank-you.html?geo=austin-tx&ct=car-accident">Thank You (post-submit)</a><a href="privacy-policy.html">Privacy Policy</a><a href="terms.html">Terms of Use</a><a href="404.html">404 Page</a></div></section>
 <p class="tip">This hub is for review only — never send ad traffic here. Campaign final URLs go directly to a city page.</p>
 </div></body></html>
