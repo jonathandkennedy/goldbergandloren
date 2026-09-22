@@ -27,6 +27,12 @@
   thank-you/404 directly), so baking carries it everywhere; index.html (internal
   hub) deliberately has NO tag so internal visits don't pollute recordings.
   Dashboard: clarity.microsoft.com.
+- Sitelink anchors (2026-09-22): every lander now carries section ids —
+  `#case-form`, `#results`, `#how-it-works`, `#attorneys`, `#reviews`, `#faq` —
+  so Google Ads sitelinks have real destinations. Ready-to-paste sitelink text,
+  descriptions and URLs are in **SITELINKS.md** (character limits already
+  enforced: 25 / 35 / 35). Pages use scroll-behavior:smooth, so anchor landings
+  animate; all six verified to land in view at 390px.
 - Heading copy (2026-09-22): H1 and 4 of the 7 H2s are now case-type-specific
   (process, insider, FAQ, final-CTA), EN + ES. Rideshare H1 reads "Uber or
   Lyft Accident" rather than "Rideshare" for ad message match (ES already
