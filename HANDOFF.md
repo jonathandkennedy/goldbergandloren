@@ -27,6 +27,17 @@
   thank-you/404 directly), so baking carries it everywhere; index.html (internal
   hub) deliberately has NO tag so internal visits don't pollute recordings.
   Dashboard: clarity.microsoft.com.
+- Heading copy (2026-09-22): H1 and 4 of the 7 H2s are now case-type-specific
+  (process, insider, FAQ, final-CTA), EN + ES. Rideshare H1 reads "Uber or
+  Lyft Accident" rather than "Rideshare" for ad message match (ES already
+  said "Uber o Lyft"). Three H2s stay shared ON PURPOSE: the form-card
+  "What's Your Case Worth?" (measured: it is 1 line at 390px; every
+  case-specific variant wraps to 2 and pushes the form down), "Real Results
+  — Real Speed" (the grid below it mixes car/trucking/construction/
+  pedestrian results — a case-specific claim there would misrepresent), and
+  "What Clients Say" (the Google reviews are firm-wide, not case-tagged).
+  Editing any H2 means editing its ES op too: .card h2[0], .sec-h[0..4],
+  and .final .sec-h[0] (an "ft" op so the "Free/Gratis" span survives).
 - ClickCease (2026-09-21): click-fraud detection/blocking on all 102
   visitor-facing pages (4 masters + every baked city page + kw-test pages,
   thank-you, 404, privacy-policy, terms). Async script in the head after the
