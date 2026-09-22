@@ -302,3 +302,69 @@ carries "Attorneys are licensed by state; not all attorneys are licensed in ever
 state," which covers the advertising. Worth confirming which Texas-licensed
 attorney is responsible for Texas matters, since DFW and San Antonio are where
 the ad spend is going.
+
+## Shared pages redesign — goldbergloren.com look (2026-09-22)
+The six shared pages were rebuilt to match the firm's own site, from the client's
+phone screenshots of goldbergloren.com: deep navy + metallic gold, Playfair
+Display headlines with gold italic accents over DM Sans, a gold results ticker,
+square gold CTAs with a light sheen, ghosted serif numerals behind each hero,
+and a sticky **Call Now / Free Review** bar on phones (the firm's has "Chat with
+us"; ours routes to the lander's form, since there is no chat).
+
+- **Fonts are self-hosted** in `fonts/` (Playfair Display + DM Sans variable
+  woff2, ~112 KB total, SIL Open Font License — licence files alongside). No
+  Google Fonts request, so no third-party dependency and no extra DNS lookup.
+  Preloaded; `font-display: swap`, so text never waits on them.
+- **Our Team uses the firm's homepage partner portrait** as its hero, and each
+  partner now has his own photo. James Loren's headshot (`img/james-loren.jpg`)
+  is cropped from that portrait — the left-hand partner. Basis: both George
+  Goldberg headshots in this repo's history (the original and the "bio
+  headshot" swap) are the right-hand partner, so the left is James.
+  **Confirm with the firm before merging** — it is an inference, not a label.
+- **The page chrome is otherwise unchanged in behaviour:** `?geo=` swaps phone +
+  GTM, `?ct=` routes the CTAs, `?lang=es` swaps language, all 95 support-suite
+  checks pass. The geo lookup was also hardened: `?geo=constructor` used to
+  resolve to a JavaScript internal and produce `tel:undefined`.
+- **Motion respects `prefers-reduced-motion`** (ticker, badge strip and button
+  sheen all stop).
+- Checked at 320 / 360 / 375 / 390 / 414 / 768 / 1024 / 1440 px in English and
+  Spanish: no overflow, clipping or wrapped labels. A 320px sweep now runs in
+  the suite — it caught an 11px header overflow that mobile emulation had hidden.
+
+### Results used — sources for every figure
+From the firm's own results page (client screenshots, 2026-09-22), verbatim:
+- **$8.75 Million** settlement — premises liability, Ben Lomond, CA, Aug 2025
+- **$4.5 Million** settlement — auto accident, Bonanza, OR, Apr 2025 (the
+  description is truncated at "…requiring multiple surgeries." — the firm's
+  full sentence runs on, and it was cut rather than completed from guesswork)
+- **$1,750,000** wrongful death (ticker only on the firm's site — no details)
+
+Confirmed by the client, 2026-09-22:
+- **$14.6 Million** settlement — construction accident. Lexinter's listing for
+  the firm: "$14.6 million for a construction site injury." It now leads the
+  settlements page and the ticker.
+- **The landers had this as "$14,000,000" — corrected to $14,600,000** in all
+  four masters and re-baked: 98 pages (92 city + 6 keyword-test), one line each,
+  verified by diff to be the only change. "Settled in 289 days" is unchanged.
+- This also resolves the earlier worry: the firm's results page labels $8.75M
+  its "largest settlement", but that page is "a selection of recent" results —
+  the $14.6M case evidently predates it.
+
+From the landers: $2.5M pedestrian (settled in 193 days) and the $1,025,000
+policy-limits story.
+
+**Still open:**
+- **"$8,700,000 trucking" (landers only) — not used on the shared pages.** It is
+  suspiciously close to the $8.75M *premises liability* case and no source
+  confirms a trucking case at that figure. Needs the firm's word.
+- **Pedestrian figures:** Lexinter also lists "$3.5 million for a pedestrian
+  accident"; the landers show $2,500,000 pedestrian. May be two different cases
+  — worth one question to the firm while confirming the trucking figure.
+
+The support suite holds an allowlist of sourced dollar figures and fails on any
+other, so a new number cannot slip onto these pages unverified.
+
+### Copy dropped
+The "You talk to lawyers, not phone trees" chip is gone from the shared pages:
+it conflicts with the rule that intake copy says *a real person answers*, not
+*an attorney answers*. **It is still on every lander** — worth the same fix there.

@@ -133,9 +133,17 @@ for (const h of links) {
 
 // 8. ratings grid renders only offices with real Google ratings
 await page.goto(HOST + "reviews.html");
-const cards = await page.$$eval("#ratings .rcard", n => n.map(e => e.textContent.replace(/\s+/g, " ").trim()));
-check(`ratings cards render from real data only (${cards.length}: ${cards.join(" | ")})`,
-  cards.length === 5 && cards.every(c => /^[45]\.\d\/5[A-Z]/.test(c) && /\d+ Google reviews$/.test(c)));
+const cards = await page.$$eval("#ratings .rcard", n => n.map(e => ({
+  num: e.querySelector(".r-num").textContent, city: e.querySelector(".r-city").textContent,
+  label: e.querySelector("em").textContent, pct: e.querySelector(".r-stars").style.getPropertyValue("--pct") })));
+check(`ratings cards render from real data only (${cards.map(c => `${c.city} ${c.num}`).join(" | ")})`,
+  cards.length === 5 && cards.every(c => /^[45]\.\d$/.test(c.num) && /^[A-Z]/.test(c.city) && /^\d[\d,]* Google reviews$/.test(c.label)));
+// a 4.2 office must show 4.2 stars, never five
+check(`star fill matches each rating (${cards.map(c => c.pct).join(" ")})`,
+  cards.every(c => Math.abs(parseFloat(c.pct) - parseFloat(c.num) * 20) < 0.11));
+// baked at build time: present in the raw HTML, so they render without JavaScript
+const rawReviews = await (await fetch(HOST + "reviews.html")).text();
+check("ratings are in the served HTML, not injected by JS", (rawReviews.match(/class="rcard"/g) || []).length === 5);
 
 // 9. three real Google testimonials present and attributed
 const names = await page.$$eval(".tby", n => n.map(e => e.textContent));
@@ -213,13 +221,108 @@ for (const slug of PAGES) {
 
 // 17. every image referenced actually resolves
 await page.goto(HOST + "our-team.html");
-const imgs = await page.$$eval("img", n => n.map(i => i.getAttribute("src")));
-for (const src of imgs) {
+const imgs = await page.$$eval("img", n => n.map(i => ({ src: i.getAttribute("src"), alt: i.getAttribute("alt") })));
+for (const src of [...new Set(imgs.map(i => i.src))]) {
   const r = await fetch(HOST + src);
   check(`image resolves (${src})`, r.status === 200);
 }
-check("James Loren rendered with a monogram, not a stand-in photo",
-  imgs.length === 1 && (await page.textContent(".mono")).trim() === "JL");
+check("both partners shown with their own real photos, named in alt text",
+  imgs.some(i => i.src === "img/george-goldberg.jpg" && /George/.test(i.alt)) &&
+  imgs.some(i => i.src === "img/james-loren.jpg" && /James/.test(i.alt)) && !(await page.$(".mono")));
+check("hero portrait loads eagerly as the LCP image",
+  await page.$eval(".hero-photo img", i => i.getAttribute("fetchpriority") === "high" && i.getAttribute("loading") !== "lazy"));
+
+// 19. self-hosted fonts: every @font-face resolves and actually loads —
+// and no page reaches out to a third-party font host
+await page.goto(HOST + "no-fee.html");
+await page.evaluate(() => document.fonts.ready);
+const fontsLoaded = await page.evaluate(() => [
+  document.fonts.check("800 40px 'Playfair Display'"),
+  document.fonts.check("italic 500 40px 'Playfair Display'"),
+  document.fonts.check("400 17px 'DM Sans'")]);
+check(`Playfair (roman + italic) and DM Sans load from fonts/ (${fontsLoaded})`, fontsLoaded.every(Boolean));
+for (const slug of PAGES) {
+  const html = await (await fetch(HOST + slug + ".html")).text();
+  check(`${slug}: no third-party font requests`, !/fonts\.googleapis|fonts\.gstatic|use\.typekit/.test(html));
+}
+
+// 20. sticky call bar: visible on phones with the market's number, hidden on desktop
+await page.setViewportSize({ width: 390, height: 844 });
+await page.goto(HOST + "settlements.html?geo=san-antonio-tx&ct=truck-accident");
+check("mobile call bar visible and dials the San Antonio number",
+  await page.isVisible(".mbar") &&
+  (await page.getAttribute(".mbar a.js-tel", "href")) === "tel:+12108806076" &&
+  (await page.getAttribute(".mbar a.js-form-link", "href")) === "truck-accident.html?geo=san-antonio-tx#case-form");
+const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+check(`no horizontal scroll at 390px (${overflow}px overflow)`, overflow <= 0);
+await page.setViewportSize({ width: 1280, height: 800 });
+await page.goto(HOST + "settlements.html");
+check("call bar hidden on desktop", !(await page.isVisible(".mbar")));
+
+// 21. geo lookup only accepts real market keys — Object internals fall back
+for (const bad of ["constructor", "__proto__", "hasOwnProperty"]) {
+  await page.goto(HOST + "no-fee.html?geo=" + bad);
+  check(`?geo=${bad} falls back to the national number`,
+    (await page.$eval("a.js-tel", a => a.getAttribute("href"))) === "tel:+15129603887");
+}
+
+// 22. Spanish reaches the new chrome too: ticker, call bar, final CTA —
+// and the market number survives the swap everywhere it appears
+await page.goto(HOST + "case-review.html?geo=dallas-tx&lang=es");
+const esTicker = await page.textContent(".ticker li span");
+const esBar = await page.textContent(".mbar-call");
+const esTels = await page.$$eval(".js-tel-text", n => [...new Set(n.map(e => e.textContent))]);
+const esHrefs = await page.$$eval("a.js-tel", n => [...new Set(n.map(a => a.getAttribute("href")))]);
+check(`ES covers ticker ("${esTicker}") and call bar ("${esBar.trim()}")`,
+  /Accidente|Propiedad|Recuperados/.test(esTicker) && /Llame/.test(esBar));
+check(`ES keeps the Dallas number on every call link (${esTels} / ${esHrefs})`,
+  esTels.length === 1 && esTels[0] === "(214) 466-2129" && esHrefs.length === 1 && esHrefs[0] === "tel:+12144662129");
+await page.evaluate(() => localStorage.removeItem("gl-lang"));
+
+// 23. ticker: one list for screen readers, the loop copies hidden from them
+const lists = await page.$$eval(".ticker ul", n => n.map(u => u.getAttribute("aria-hidden")));
+check(`ticker exposes one list, hides ${lists.length - 1} loop copies`,
+  lists.length === 4 && lists[0] === null && lists.slice(1).every(a => a === "true"));
+
+// 24. every dollar figure on every page is a sourced one. Adding a figure means
+// verifying it against the firm's published results first, then adding it here.
+const SOURCED = new Set(["$4,500,000", "$14,600,000", "$8,750,000", "$2,500,000", "$1,750,000", "$1,025,000",
+  "$14.6 Million", "$8.75 Million", "$4.5 Million", "$2.5 Million", "$1.75 Million", "$550M+", "$750,000", "$77,600", "$17,600", "$0"]);
+for (const slug of PAGES) {
+  await page.goto(HOST + slug + ".html");
+  const text = await page.evaluate(() => document.body.innerText);
+  const found = [...new Set(text.match(/\$\d[\d,.]*(?:\s?Million|M\+)?/g) || [])];
+  const unsourced = found.filter(f => !SOURCED.has(f));
+  check(`${slug}: only sourced dollar figures (${unsourced.length ? "UNSOURCED " + unsourced.join(", ") : found.length + " found"})`, unsourced.length === 0);
+}
+
+// 25. layout sweep: smallest phone, common phone, desktop — both languages.
+// Uses a non-mobile context on purpose: mobile emulation widens the layout
+// viewport to fit overflowing content, which hides exactly what this looks for
+// (it once masked an 11px header overflow at 320px).
+for (const w of [320, 390, 1440]) {
+  const ctx = await browser.newContext({ viewport: { width: w, height: 800 } });
+  const pg = await ctx.newPage();
+  await pg.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com/, r => r.abort());
+  for (const lang of ["en", "es"]) {
+    const problems = [];
+    for (const slug of PAGES) {
+      await pg.goto(`${HOST}${slug}.html?lang=${lang}&geo=san-antonio-tx`);
+      await pg.evaluate(() => document.fonts.ready);
+      const r = await pg.evaluate(() => {
+        const W = document.documentElement.clientWidth;
+        const lines = e => { const cs = getComputedStyle(e); return Math.round(e.getBoundingClientRect().height / (parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.2)); };
+        const off = [...document.querySelectorAll("main *, header *, .mbar, .mbar *")].filter(e => {
+          const b = e.getBoundingClientRect(); return b.width && (b.right > W + 1 || b.left < -1) && !e.closest(".ticker,.badges,.hero-mark,.ph"); });
+        const wrapped = [...document.querySelectorAll(".mbar a span, .live span, .hd-call-txt strong")].filter(e => e.offsetParent && lines(e) > 1);
+        return { over: document.documentElement.scrollWidth - W, off: off.length, wrapped: wrapped.map(e => e.textContent) };
+      });
+      if (r.over > 0 || r.off || r.wrapped.length) problems.push(`${slug}(overflow ${r.over}, offscreen ${r.off}${r.wrapped.length ? ", wrapped " + r.wrapped : ""})`);
+    }
+    check(`${w}px ${lang.toUpperCase()}: no overflow, clipping or wrapped labels${problems.length ? " — " + problems.join("; ") : ""}`, !problems.length);
+  }
+  await ctx.close();
+}
 
 // 18. hub lists all six under Shared Pages
 const hub = await (await fetch(HOST + "index.html")).text();
