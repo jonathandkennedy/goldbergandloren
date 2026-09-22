@@ -105,9 +105,10 @@ Full example: a Dallas car ad group links "Uber & Lyft Accidents" to
   final URL. Sets A and C are genuinely separate pages. Lead with Set A, add
   Set C, and swap in a Set B row if a dedicated page ever underperforms for a
   given ad group.
-- **The support pages are `noindex,follow`** on purpose. They exist for paid
-  traffic and duplicate lander copy; letting Google index them would compete
-  with the firm's own site. They still pass link equity onward.
+- **The support pages are indexable** (`index,follow`, canonical, sitemapped),
+  so they can earn organic traffic alongside the paid clicks. The **landers stay
+  `noindex`** — 92 near-duplicate city pages are a doorway-page risk, and that
+  hasn't changed. Sitelink performance is unaffected either way.
 - **Don't drop the `?geo=` parameter.** Without it the page falls back to the
   national number (512) 960-3887 and the call stops attributing to the market's
   CallRail pool. `?ct=` is optional — it defaults to the car-accident lander.

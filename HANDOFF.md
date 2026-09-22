@@ -222,8 +222,11 @@ build time — **adding a market there is the only edit needed**, then re-run th
 generator. There is no second copy of the phone list to keep in sync.
 
 Deliberate choices:
-- **`noindex,follow`.** They duplicate lander copy and exist for paid traffic;
-  indexing them would compete with the firm's own site.
+- **Indexable (`index,follow`) as of 2026-09-22.** Originally shipped `noindex`
+  to avoid competing with goldbergloren.com; the client confirmed that isn't a
+  concern, and unlike the landers these six are six unique pages rather than 92
+  city duplicates, so there is no doorway-page risk. See the SEO section below
+  for what indexing them required beyond deleting the meta tag.
 - **No form on any of them.** They hand off to the lander's single form, so
   there is exactly one form to maintain, test, and keep TCPA-compliant.
 - **Ratings grid on `reviews.html` renders only offices with a real Google
@@ -238,6 +241,37 @@ Deliberate choices:
 Tests: `tests/support-e2e.mjs` (39 checks) — geo phone swap, hostile-param
 fallback, CTA routing, EN/ES round trip, language persistence, dataLayer payload,
 compliance copy, no-duplicate-form, image resolution, hub listing.
+
+### SEO on the support pages (2026-09-22)
+Making them indexable needed more than removing `noindex`:
+
+- **Canonical, parameter-free**, e.g. `https://results.goldbergloren.com/no-fee.html`.
+  This is the load-bearing one. The pages accept `?geo=` × 22, `?ct=` × 4 and
+  `?lang=` × 2 — without a canonical that is ~176 indexable duplicates of every
+  page. Ads keep using the parameters; organic consolidates on the clean URL.
+- **`LegalService` JSON-LD with `sameAs: goldbergloren.com`** on every page. The
+  subdomain is a different host to Google; `sameAs` says "same firm", not
+  "competitor". `Person` schema for both partners on `our-team.html`.
+- **No `aggregateRating` or `Review` markup, deliberately.** Google does not show
+  review rich results for self-serving reviews about a business on its own site,
+  and marking them up anyway risks a structured-data manual action. The reviews
+  still display to humans — they just aren't marked up. Do not "fix" this.
+- **Absolute OG/Twitter URLs.** (The landers' `og:image` is a *relative* path,
+  which is invalid for Open Graph — worth fixing there separately.)
+- **`robots.txt` + `sitemap.xml`**, generated alongside the pages so they cannot
+  drift. robots.txt deliberately **allows everything**: the landers rely on a
+  `noindex` meta tag, and a crawler blocked by robots.txt never sees it.
+- Titles ≤62 chars, descriptions 110–165, enforced by the test suite.
+
+**The landers stay `noindex`, and that should not change.** 22 cities × 4 case
+types of near-identical copy with the city swapped is the textbook doorway-page
+pattern Google penalises, and a manual action would hit the whole subdomain.
+The six support pages are safe to index precisely because they are unique.
+
+**Spanish is not indexed.** `?lang=es` is a JS toggle on the same URL, and the
+canonical points at the English version. Getting Spanish into organic properly
+means separate `-es.html` files with hreflang pairs — a real piece of work, not
+a config flag. Flagged, not done.
 
 ### Bio claims — verified 2026-09-22
 Checked against the firm's own published material before using:

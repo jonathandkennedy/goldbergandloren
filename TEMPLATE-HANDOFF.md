@@ -205,7 +205,17 @@ They are **shared across all markets but geo-aware at runtime** — `?geo=<slug>
 swaps the phone and GTM container so call tracking still attributes,
 `?ct=<practice>` points the return CTAs at the matching lander, `?lang=es`
 switches language (same localStorage key as the landers, so the choice follows
-the visitor). All are `noindex,follow`.
+the visitor).
+
+**They are indexable; the landers are not.** Six unique pages can rank. Ninety-two
+near-identical city landers are a doorway-page pattern — keep those `noindex`
+whatever the client asks. Indexing the six requires, and the generator emits:
+a **parameter-free canonical** (without it `?geo`/`?ct`/`?lang` spawn ~176
+duplicates per page), `LegalService` JSON-LD with `sameAs` pointing at the
+client's main site so the subdomain reads as the same entity, absolute OG URLs,
+and a generated `robots.txt` + `sitemap.xml`. **Never** add `aggregateRating` or
+`Review` markup for the client's own reviews on the client's own site — Google
+won't show it and it risks a manual action.
 
 Porting to a new client:
 1. Rewrite the copy in the `PAGES` object — the page **shells** (geo wiring,

@@ -24,15 +24,72 @@ let failures = 0;
 const check = (label, cond) => { console.log((cond ? "PASS " : "FAIL ") + label); if (!cond) failures++; };
 const PAGES = ["no-fee", "reviews", "settlements", "case-review", "maximize-compensation", "our-team"];
 
-// 1. every page loads, has exactly one H1, a title, and is noindex
+// 1. every page loads, has exactly one H1, and is indexable with sane metadata
+const ORIGIN = "https://results.goldbergloren.com";
 for (const slug of PAGES) {
   await page.goto(HOST + slug + ".html");
   const h1s = await page.$$eval("h1", n => n.map(e => e.textContent.trim()));
   const robots = await page.getAttribute('meta[name="robots"]', "content");
   const title = await page.title();
-  check(`${slug}: single H1 ("${h1s[0]}"), titled, noindex`,
-    h1s.length === 1 && h1s[0].length > 6 && title.includes("Goldberg") && robots === "noindex,follow");
+  const desc = await page.getAttribute('meta[name="description"]', "content");
+  check(`${slug}: single H1 ("${h1s[0]}"), indexable, title ${title.length}ch, desc ${desc.length}ch`,
+    h1s.length === 1 && h1s[0].length > 6 && title.includes("Goldberg") && robots === "index,follow" &&
+    title.length <= 62 && desc.length >= 110 && desc.length <= 165);
 }
+
+// 1b. canonical is absolute, self-referencing and PARAMETER-FREE — otherwise
+// ?geo/?ct/?lang would spawn ~176 indexable duplicates of every page
+for (const slug of PAGES) {
+  await page.goto(HOST + slug + ".html?geo=dallas-tx&ct=truck-accident&lang=es");
+  const canon = await page.getAttribute('link[rel="canonical"]', "href");
+  const ogUrl = await page.getAttribute('meta[property="og:url"]', "content");
+  const ogImg = await page.getAttribute('meta[property="og:image"]', "content");
+  check(`${slug}: canonical param-free + absolute OG (${canon})`,
+    canon === `${ORIGIN}/${slug}.html` && !canon.includes("?") &&
+    ogUrl === canon && ogImg.startsWith("https://"));
+}
+// those loads carried ?lang=es, which is persisted on purpose (see 12b) — clear
+// it so the English-copy checks below aren't reading a leftover preference
+await page.evaluate(() => localStorage.removeItem("gl-lang"));
+
+// 1c. structured data parses, identifies the firm, and points at the main site
+// so the subdomain reads as the SAME entity rather than a competitor
+for (const slug of PAGES) {
+  await page.goto(HOST + slug + ".html");
+  const blocks = await page.$$eval('script[type="application/ld+json"]', n => n.map(e => e.textContent));
+  let parsed;
+  try { parsed = blocks.map(b => JSON.parse(b)); } catch { parsed = null; }
+  const firm = parsed && parsed.find(x => x["@type"] === "LegalService");
+  check(`${slug}: JSON-LD parses, LegalService sameAs the firm site`,
+    !!firm && firm.sameAs.includes("https://goldbergloren.com/") &&
+    firm.name.includes("Goldberg") && firm.telephone.length > 8);
+  // self-serving review markup is a manual-action risk — must stay absent
+  check(`${slug}: no self-serving aggregateRating/Review markup`,
+    !!parsed && parsed.every(x => !x.aggregateRating && !x.review));
+}
+
+// 1d. the two named attorneys carry Person schema on the team page
+await page.goto(HOST + "our-team.html");
+const people = await page.$$eval('script[type="application/ld+json"]',
+  n => n.map(e => JSON.parse(e.textContent)).filter(x => x["@type"] === "Person").map(x => x.name));
+check(`our-team: Person schema for both partners (${people.join(", ")})`,
+  people.length === 2 && people.some(n => n.includes("Goldberg")) && people.some(n => n.includes("Loren")));
+
+// 1e. robots.txt and sitemap agree with the pages that actually exist
+const robotsTxt = await (await fetch(HOST + "robots.txt")).text();
+check(`robots.txt allows crawling and points at the sitemap`,
+  /User-agent:\s*\*/.test(robotsTxt) && /Allow:\s*\//.test(robotsTxt) &&
+  robotsTxt.includes(`${ORIGIN}/sitemap.xml`) && !/Disallow:\s*\/\s*$/m.test(robotsTxt));
+const sitemap = await (await fetch(HOST + "sitemap.xml")).text();
+check(`sitemap lists exactly the ${PAGES.length} indexable pages`,
+  PAGES.every(sl => sitemap.includes(`${ORIGIN}/${sl}.html`)) &&
+  (sitemap.match(/<loc>/g) || []).length === PAGES.length);
+
+// 1f. the landers stay noindex — indexing 92 near-duplicate city pages is the
+// doorway-page pattern Google penalises, and that decision is unchanged here
+const lander = await (await fetch(HOST + "car-accident-dallas-tx.html")).text();
+check("landers still carry noindex (doorway-page risk unchanged)",
+  /<meta name="robots" content="noindex/.test(lander) && !sitemap.includes("car-accident-dallas-tx"));
 
 // 2. no geo param → national number everywhere on the page
 await page.goto(HOST + "no-fee.html");

@@ -26,6 +26,39 @@ const GEO_MIN = Object.fromEntries(Object.entries(GEOS).map(([k, v]) => {
 }));
 const RATED = Object.entries(GEO_MIN).filter(([, v]) => v.stars).length;
 
+const ORIGIN = "https://results.goldbergloren.com";
+const FIRM_URL = "https://goldbergloren.com/";
+const esc = v => String(v).replace(/&(?!(?:amp|lt|gt|quot|#\d+|[a-z]+);)/g, "&amp;").replace(/"/g, "&quot;");
+
+// Entity consolidation: these pages live on a subdomain, so sameAs tells Google
+// this is the SAME firm as goldbergloren.com rather than a competing site.
+const firmSchema = {
+  "@context": "https://schema.org",
+  "@type": "LegalService",
+  "@id": ORIGIN + "/#firm",
+  name: "Goldberg & Loren Personal Injury Attorneys",
+  url: ORIGIN + "/",
+  sameAs: [FIRM_URL],
+  telephone: "+1-512-960-3887",
+  description: "Personal injury attorneys handling car, truck, motorcycle and rideshare accident claims nationwide. 20,000+ injury cases handled since 1994.",
+  areaServed: "US",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "10189 Cleary Boulevard, Suite 101",
+    addressLocality: "Plantation",
+    addressRegion: "FL",
+    postalCode: "33324",
+    addressCountry: "US"
+  },
+  founder: [
+    { "@type": "Person", name: "George Z. Goldberg", sameAs: "https://goldbergloren.com/attorney-george-goldberg/" },
+    { "@type": "Person", name: "James M. Loren", sameAs: "https://goldbergloren.com/attorney-james-loren/" }
+  ]
+};
+// Deliberately NO aggregateRating/Review markup: Google does not show review
+// rich results for self-serving reviews about the business on its own site, and
+// marking them up anyway risks a structured-data manual action.
+
 const CLARITY = `<!-- Microsoft Clarity -->
 <script type="text/javascript">
     (function(c,l,a,r,i,t,y){
@@ -117,8 +150,8 @@ const t = (tag, en, es, cls = "") =>
 
 const PAGES = {
 "no-fee": {
-  title: "No Fee Unless We Win | Goldberg &amp; Loren",
-  desc: "You pay nothing up front and no attorney fee unless we recover money for you. Here is exactly how our contingency fee works.",
+  title: "No Fee Unless We Win | Goldberg & Loren Injury Attorneys",
+  desc: "You pay nothing up front and no attorney fee unless we recover money for you. Here is exactly how the contingency fee works — including the fine print.",
   eyebrow: ["How We Get Paid", "Cómo Cobramos"],
   h1: ["No Fee Unless We Win", "No Paga Si No Ganamos"],
   intro: ["You pay nothing up front — ever. We front every dollar it costs to build your case, and we only collect an attorney fee if we recover money for you.",
@@ -138,8 +171,8 @@ const PAGES = {
   ],
 },
 "reviews": {
-  title: "Client Reviews | Goldberg &amp; Loren",
-  desc: "Real Google reviews from Goldberg & Loren clients, plus our current client ratings by office.",
+  title: "Client Reviews | Goldberg & Loren Injury Attorneys",
+  desc: "Real Google reviews from Goldberg & Loren injury clients, plus current client ratings by office. 20,000+ injury cases handled since 1994.",
   eyebrow: ["Client Reviews", "Reseñas de Clientes"],
   h1: ["What Our Clients Say", "Lo Que Dicen Nuestros Clientes"],
   intro: ["Reviews left by real clients on Google. We handle injury cases nationwide — here is what people say after working with our team.",
@@ -156,8 +189,8 @@ const PAGES = {
   ],
 },
 "settlements": {
-  title: "Recent Settlements &amp; Results | Goldberg &amp; Loren",
-  desc: "Real settlements Goldberg & Loren has recovered for injury clients, including how quickly each one resolved.",
+  title: "Recent Settlements & Results | Goldberg & Loren",
+  desc: "Real settlements Goldberg & Loren recovered for injury clients — $4.5M, $8.7M, $14M — and how quickly each one resolved. $550M+ recovered since 1994.",
   eyebrow: ["Results", "Resultados"],
   h1: ["Recent Settlements", "Acuerdos Recientes"],
   intro: ["Insurance companies profit by dragging cases out. These are real recoveries for our clients — and how fast each one resolved.",
@@ -179,8 +212,8 @@ const PAGES = {
   ],
 },
 "case-review": {
-  title: "Free Case Review, 24/7 | Goldberg &amp; Loren",
-  desc: "Talk to a real person about your injury case right now. Free, confidential, no obligation — 24 hours a day.",
+  title: "Free 24/7 Case Review | Goldberg & Loren Injury Attorneys",
+  desc: "Talk to a real person about your injury case right now. Free, confidential, and no obligation — 24 hours a day, 7 days a week.",
   eyebrow: ["Open 24/7", "Abierto 24/7"],
   h1: ["Free Case Review — 24/7", "Evaluación Gratis — 24/7"],
   intro: ["Call now and a real person — not a phone tree — hears what happened and tells you where you stand. Free, confidential, and no obligation.",
@@ -199,8 +232,8 @@ const PAGES = {
   ],
 },
 "maximize-compensation": {
-  title: "Maximize Your Compensation | Goldberg &amp; Loren",
-  desc: "Insurers are trained to settle low and fast. Here is how Goldberg & Loren build injury cases that pay in full.",
+  title: "Maximize Your Injury Compensation | Goldberg & Loren",
+  desc: "Insurers settle low and fast by design. How Goldberg & Loren build injury cases that pay in full — and why represented victims recover 4.4x more on average.",
   eyebrow: ["Why We Win", "Por Qué Ganamos"],
   h1: ["Maximize Your Compensation", "Maximice Su Compensación"],
   intro: ["First offers are low by design. We build the case the insurer hopes you never build — and we do it on our dime.",
@@ -221,10 +254,22 @@ const PAGES = {
   ],
 },
 "our-team": {
-  title: "Meet Your Team | Goldberg &amp; Loren Personal Injury Attorneys",
-  desc: "The Goldberg & Loren personal injury team — a former insurance defense lawyer and a trial partner with 50+ verdicts.",
+  title: "Meet Your Team | Goldberg & Loren Injury Attorneys",
+  desc: "Meet the Goldberg & Loren injury team: a founding partner who spent two years defending insurers, and a senior trial partner with 50+ verdicts and a CPA.",
   eyebrow: ["Your Team", "Su Equipo"],
   h1: ["Meet Your Team", "Conozca a Su Equipo"],
+  extraSchema: [
+    { "@context": "https://schema.org", "@type": "Person", name: "George Z. Goldberg",
+      jobTitle: "Founding & Managing Partner", worksFor: { "@id": ORIGIN + "/#firm" },
+      alumniOf: [{ "@type": "CollegeOrUniversity", name: "University of Miami School of Law" },
+                 { "@type": "CollegeOrUniversity", name: "Emory University" }],
+      sameAs: "https://goldbergloren.com/attorney-george-goldberg/",
+      description: "Founding and managing partner. Spent his first two years in practice at an aviation defense firm, defending airlines and insurance companies in injury litigation, before opening his own injury firm in 1996." },
+    { "@context": "https://schema.org", "@type": "Person", name: "James M. Loren",
+      jobTitle: "Senior Partner", worksFor: { "@id": ORIGIN + "/#firm" },
+      sameAs: "https://goldbergloren.com/attorney-james-loren/",
+      description: "Senior partner and the firm's most senior trial lawyer. 20+ years in practice with 50+ cases tried to verdict nationwide. Certified Public Accountant." }
+  ],
   intro: ["A dedicated personal injury team — one partner who used to defend insurance companies, and one who takes them to trial.",
           "Un equipo dedicado a lesiones personales — un socio que antes defendía a las aseguradoras y otro que las lleva a juicio."],
   body: [
@@ -255,12 +300,29 @@ const page = (slug, p) => `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex,follow">
+<meta name="robots" content="index,follow">
 <meta name="theme-color" content="#ffffff">
 ${CLARITY}
-<title>${p.title}</title>
-<meta name="description" content="${p.desc}">
+<title>${esc(p.title)}</title>
+<meta name="description" content="${esc(p.desc)}">
+<link rel="canonical" href="${ORIGIN}/${slug}.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Goldberg &amp; Loren Personal Injury Attorneys">
+<meta property="og:url" content="${ORIGIN}/${slug}.html">
+<meta property="og:title" content="${esc(p.title)}">
+<meta property="og:description" content="${esc(p.desc)}">
+<meta property="og:image" content="${ORIGIN}/img/hero-partners.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(p.title)}">
+<meta name="twitter:description" content="${esc(p.desc)}">
+<meta name="twitter:image" content="${ORIGIN}/img/hero-partners.jpg">
 <link rel="icon" type="image/png" href="img/favicon.png">
+<script type="application/ld+json">
+${JSON.stringify(firmSchema, null, 1)}
+</script>${(p.extraSchema || []).map(x => `
+<script type="application/ld+json">
+${JSON.stringify(x, null, 1)}
+</script>`).join("")}
 <style>
 ${CSS}
 </style>
@@ -386,4 +448,23 @@ for (const [slug, p] of Object.entries(PAGES)) {
   writeFileSync(slug + ".html", page(slug, p));
   console.log("built " + slug + ".html");
 }
+
+// robots.txt must NOT disallow the landers — they carry a noindex meta tag, and
+// a crawler blocked by robots.txt never sees it.
+writeFileSync("robots.txt", `User-agent: *
+Allow: /
+
+Sitemap: ${ORIGIN}/sitemap.xml
+`);
+
+const today = new Date().toISOString().slice(0, 10);
+writeFileSync("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${Object.keys(PAGES).map(sl => `  <url>
+    <loc>${ORIGIN}/${sl}.html</loc>
+    <lastmod>${today}</lastmod>
+  </url>`).join("\n")}
+</urlset>
+`);
+console.log("built robots.txt + sitemap.xml");
 console.log(`${Object.keys(PAGES).length} shared pages · ${Object.keys(GEO_MIN).length} geos wired · ${RATED} offices with real Google ratings`);
