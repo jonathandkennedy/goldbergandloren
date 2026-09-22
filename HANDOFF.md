@@ -368,3 +368,27 @@ other, so a new number cannot slip onto these pages unverified.
 The "You talk to lawyers, not phone trees" chip is gone from the shared pages:
 it conflicts with the rule that intake copy says *a real person answers*, not
 *an attorney answers*. **It is still on every lander** — worth the same fix there.
+
+## Austin heading-outline test (2026-09-22)
+The client asked for a separate Austin car-accident page, built to an exact
+H1/H2/H3 outline, to test against the current Austin lander.
+`austin-car-accident-attorneys.html` is built by `generate-austin-test.mjs` from
+the baked control (`car-accident-austin-tx.html`): same design, hero, form and
+tracking, rebuilt below the hero around his outline. **Setup, the outline and
+how to read results: `AUSTIN-HEADINGS-TEST.md`.**
+
+- **Exact outline, enforced.** The page has exactly his 15 headings and no
+  others. The form title, success message and footer column titles are styled
+  paragraphs on this page. The build fails on any drift, and the suite checks
+  it in English and Spanish.
+- **Spanish rebuilt safely.** The landers' Spanish is positional, so 48 entries
+  aimed at removed sections were dropped and 69 new ones added, targeted by ID.
+  A test proves every entry lands on a real element. Call buttons translate
+  around the number, so CallRail's swapped number survives a language change.
+- **Tagged for the split:** `variant: "austin-headings"` on leads,
+  `&variant=austin-headings` on the thank-you URL, and a `page_variant` GTM event.
+- `noindex`, like every lander.
+- Listed in the hub under its own section, **NEW TAGs Landers**.
+- **"Over $500 Million Won" is the client's wording, kept as he wrote it.** The firm
+  says *recovered* everywhere else. It was flagged, and "Recovered" is a one-word
+  change if he ever wants it.

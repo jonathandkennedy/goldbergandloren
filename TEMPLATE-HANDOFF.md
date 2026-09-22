@@ -71,7 +71,8 @@ already wired and battle-tested:
 | `thank-you.html` | Post-submit page; fires `lead_form_submit` + loads the per-market GTM (reads `?geo=&ct=`). |
 | `404.html` | Branded not-found with call CTA; `call_click` tagged `geo:"404"`. |
 | `CAMPAIGN-URLS-*.md` | Final-URL reference handed to whoever builds the ad campaigns. |
-| `tests/form-e2e.mjs`, `tests/kw-e2e.mjs`, `tests/support-e2e.mjs` | Playwright suites (Formspree mocked — no real leads sent). Run before every deploy. |
+| `generate-austin-test.mjs` | Pattern for a **client-specified heading outline** test: builds a variant from a baked lander, rebuilds the body around the given H1/H2/H3 list, fails the build if the outline drifts, and re-targets the positional Spanish ops by ID. Copy it for any market. |
+| `tests/form-e2e.mjs`, `tests/kw-e2e.mjs`, `tests/support-e2e.mjs`, `tests/austin-test-e2e.mjs` | Playwright suites (Formspree mocked — no real leads sent). Run before every deploy. |
 | `HANDOFF.md` | The live client's operating doc — keep one per client, dated, honest. |
 
 ## 3. New-client build order (~half a day)
