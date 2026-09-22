@@ -14,7 +14,7 @@ const SUPPORT = [
   ["reviews", "Client Reviews"],
   ["settlements", "Recent Settlements"],
   ["case-review", "Free Case Review 24/7"],
-  ["maximize-compensation", "Maximize Your Compensation"],
+  ["maximize-settlement", "Maximize Your Settlement"],
   ["our-team", "Meet Your Team"],
 ];
 // the client's heading-tag test pages get a section of their own

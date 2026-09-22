@@ -22,7 +22,7 @@ await page.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com/, r => r.ab
 
 let failures = 0;
 const check = (label, cond) => { console.log((cond ? "PASS " : "FAIL ") + label); if (!cond) failures++; };
-const PAGES = ["no-fee", "reviews", "settlements", "case-review", "maximize-compensation", "our-team"];
+const PAGES = ["no-fee", "reviews", "settlements", "case-review", "maximize-settlement", "our-team"];
 
 // 1. every page loads, has exactly one H1, and is indexable with sane metadata
 const ORIGIN = "https://results.goldbergloren.com";
@@ -190,12 +190,12 @@ check("?lang=en overrides the stored preference",
 await page.evaluate(() => localStorage.removeItem("gl-lang"));
 
 // 13. call clicks push a dataLayer event carrying geo + case type + page
-await page.goto(HOST + "maximize-compensation.html?geo=austin-tx&ct=truck-accident");
+await page.goto(HOST + "maximize-settlement.html?geo=austin-tx&ct=truck-accident");
 await page.$eval("a.js-tel", a => { a.removeAttribute("href"); a.click(); });
 const dl = await page.evaluate(() => (window.dataLayer || []).filter(e => e.event === "call_click"));
 check(`call_click carries geo/ct/page (${JSON.stringify(dl[0] || {})})`,
   dl.length === 1 && dl[0].geo === "austin-tx" && dl[0].case_type === "truck-accident" &&
-  dl[0].support_page === "maximize-compensation");
+  dl[0].support_page === "maximize-settlement");
 
 // 14. compliance copy on every page
 for (const slug of PAGES) {
@@ -323,6 +323,23 @@ for (const w of [320, 390, 1440]) {
   }
   await ctx.close();
 }
+
+// 26. renamed page: new H1 + URL, and the old URL forwards with its query intact
+await page.goto(HOST + "maximize-settlement.html");
+check(`maximize-settlement H1 ("${(await page.textContent("h1")).trim()}")`,
+  (await page.textContent("h1")).trim() === "Maximize your settlement." &&
+  (await page.getAttribute('link[rel="canonical"]', "href")).endsWith("/maximize-settlement.html"));
+await page.goto(HOST + "maximize-compensation.html?geo=san-antonio-tx&ct=truck-accident&gclid=abc123#top");
+await page.waitForURL(/maximize-settlement\.html/, { timeout: 5000 });
+const moved = new URL(page.url());
+check(`old URL redirects with query + hash intact (${moved.pathname}${moved.search}${moved.hash})`,
+  moved.pathname.endsWith("/maximize-settlement.html") && moved.searchParams.get("geo") === "san-antonio-tx" &&
+  moved.searchParams.get("gclid") === "abc123" && moved.hash === "#top" &&
+  (await page.$eval("a.js-tel", a => a.getAttribute("href"))) === "tel:+12108806076");
+const stub = await (await fetch(HOST + "maximize-compensation.html")).text();
+const smap = await (await fetch(HOST + "sitemap.xml")).text();
+check("redirect stub is noindex, canonical to the new page, and out of the sitemap",
+  stub.includes('content="noindex') && stub.includes("/maximize-settlement.html") && !smap.includes("maximize-compensation"));
 
 // 18. hub lists all six under Shared Pages
 const hub = await (await fetch(HOST + "index.html")).text();

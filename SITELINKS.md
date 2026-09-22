@@ -34,7 +34,7 @@ Pattern: `https://results.goldbergloren.com/<page>.html?geo=<city>&ct=<case-type
 | **Free 24/7 Case Review** | A real person answers, 24/7. | Free, confidential, no pressure. | `case-review.html` |
 | **Recent Settlements** | Settlements: $14.6M, $8.75M, $4.5M. | See the facts behind each one. | `settlements.html` |
 | **Client Reviews** | Real Google reviews, real cases. | See what our clients say. | `reviews.html` |
-| **Maximize Your Payout** | With a lawyer: 4.4x more on avg. | First offers are low by design. | `maximize-compensation.html` |
+| **Maximize Your Settlement** | With a lawyer: 4.4x more on avg. | First offers are low by design. | `maximize-settlement.html` |
 | **Meet Your Team** | 50+ trials taken to verdict. | We know the insurance playbook. | `our-team.html` |
 | **Se Habla Español** | Evaluación gratis, 24/7. | Hable con una persona real. | `case-review.html` + `&lang=es` |
 
@@ -46,7 +46,7 @@ send every CTA back to `car-accident-san-antonio-tx.html`.
 
 Each page answers one objection: **no-fee** the money question, **case-review**
 the "what happens if I call", **settlements** and **reviews** the proof,
-**maximize-compensation** the "do I even need a lawyer", **our-team** the
+**maximize-settlement** the "do I even need a lawyer", **our-team** the
 "who am I actually hiring".
 
 ## Set B — same-page anchors (swap-in, keeps them on the converting page)
@@ -125,7 +125,7 @@ Full example: a Dallas car ad group links "Uber & Lyft Accidents" to
   `#attorneys`, `#reviews`, `#faq`.
 - Shared pages available as dedicated destinations: `no-fee.html`,
   `case-review.html`, `settlements.html`, `reviews.html`,
-  `maximize-compensation.html`, `our-team.html`. Rebuild them with
+  `maximize-settlement.html`, `our-team.html`. Rebuild them with
   `node generate-support-pages.mjs` — they read their phone numbers and GTM
   containers straight out of `car-accident.html`, so adding a market there is
   the only edit needed.

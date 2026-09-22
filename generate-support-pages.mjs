@@ -637,13 +637,13 @@ const PAGES = {
   </div>`),
   ],
 },
-"maximize-compensation": {
-  title: "Maximize Your Injury Compensation | Goldberg & Loren",
-  desc: "Insurers settle low and fast by design. How Goldberg & Loren build injury cases that pay in full — and why represented victims recover 4.4x more on average.",
+"maximize-settlement": {
+  title: "Maximize Your Injury Settlement | Goldberg & Loren",
+  desc: "First settlement offers are low by design. How Goldberg & Loren build injury cases that pay in full — and why represented victims recover 4.4x more on average.",
   hero: {
     mark: "4.4&times;",
     eyebrow: ["Getting Paid in Full", "Cobrar lo Justo"],
-    h1: ["Maximize your <em>compensation.</em>", "Maximice su <em>compensación.</em>"],
+    h1: ["Maximize your <em>settlement.</em>", "Maximice su <em>acuerdo.</em>"],
     sub: ["First offers are low by design. We build the case the insurer hopes you never build — and we do it on our dime.",
           "Las primeras ofertas son bajas por diseño. Construimos el caso que la aseguradora espera que usted nunca construya — y lo hacemos con nuestro dinero."],
   },
@@ -848,6 +848,28 @@ ${JSON.stringify(GEO_MIN)}
 for (const [slug, p] of Object.entries(PAGES)) {
   writeFileSync(slug + ".html", page(slug, p));
   console.log("built " + slug + ".html");
+}
+
+// Renamed pages keep their old URL alive as a redirect, so a sitelink or a
+// crawler still holding the old address lands on the new page. The query string
+// and hash are carried across — dropping ?geo= would cost CallRail attribution.
+const RENAMED = { "maximize-compensation": "maximize-settlement" };
+for (const [from, to] of Object.entries(RENAMED)) {
+  if (!PAGES[to]) throw new Error(`redirect target ${to} is not a page`);
+  writeFileSync(from + ".html", `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,follow">
+<title>Moved | Goldberg &amp; Loren</title>
+<link rel="canonical" href="${ORIGIN}/${to}.html">
+<script>location.replace("${to}.html" + location.search + location.hash);</script>
+<noscript><meta http-equiv="refresh" content="0; url=${to}.html"></noscript>
+</head>
+<body><p>This page has moved to <a href="${to}.html">${to}.html</a>.</p></body>
+</html>
+`);
+  console.log(`redirect ${from}.html → ${to}.html`);
 }
 
 // robots.txt must NOT disallow the landers — they carry a noindex meta tag, and
