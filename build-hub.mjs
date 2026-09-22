@@ -9,6 +9,14 @@ const CASES = [
   ["motorcycle-accident", "Motorcycle Accidents"],
   ["rideshare-accident", "Rideshare Accidents"],
 ];
+const SUPPORT = [
+  ["no-fee", "No Fee Unless We Win"],
+  ["reviews", "Client Reviews"],
+  ["settlements", "Recent Settlements"],
+  ["case-review", "Free Case Review 24/7"],
+  ["maximize-compensation", "Maximize Your Compensation"],
+  ["our-team", "Meet Your Team"],
+];
 const REGIONS = [
   ["Texas — Austin & San Antonio", ["austin-tx","san-antonio-tx"]],
   ["Texas — Dallas–Fort Worth", ["dallas-tx","downtown-dallas-tx","dallas-fort-worth-tx","fort-worth-tx","arlington-tx","grapevine-tx","rockwall-tx","frisco-tx","plano-tx","celina-tx","prosper-tx","mckinney-tx"]],
@@ -65,7 +73,9 @@ code{background:#eef3f2;border-radius:3px;padding:1px 5px;font-size:.72rem}
 <p class="kick">Retainer Reach · Internal Review</p>
 <h1>Goldberg &amp; Loren — Landers</h1>
 <p class="note">${total} pages · ${slugs.length} markets · every page has an EN/ES switch (header toggle or the "Se Habla Español" chip) · add <code>?lang=es</code> to any URL to land in Spanish · national pages accept <code>?geo=frisco-tx</code> etc. · forms redirect to <code>/thank-you.html</code></p>
-${body}<section><h2>Shared Pages</h2><div class="links"><a href="thank-you.html?geo=austin-tx&ct=car-accident">Thank You (post-submit)</a><a href="privacy-policy.html">Privacy Policy</a><a href="terms.html">Terms of Use</a><a href="404.html">404 Page</a></div></section>
+${body}<section><h2>Shared Pages &mdash; Sitelink Destinations</h2><div class="links">${SUPPORT.map(([f, label]) => `<a href="${f}.html?geo=dallas-tx&ct=car-accident">${label}</a>`).join("")}</div>
+<p class="tip">One page serves every market: <code>?geo=</code> swaps the phone number and GTM container, <code>?ct=</code> points the return CTA at the matching lander, <code>?lang=es</code> lands in Spanish.</p></section>
+<section><h2>Shared Pages &mdash; Utility</h2><div class="links"><a href="thank-you.html?geo=austin-tx&ct=car-accident">Thank You (post-submit)</a><a href="privacy-policy.html">Privacy Policy</a><a href="terms.html">Terms of Use</a><a href="404.html">404 Page</a></div></section>
 <p class="tip">This hub is for review only — never send ad traffic here. Campaign final URLs go directly to a city page.</p>
 </div></body></html>
 `);

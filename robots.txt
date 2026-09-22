@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://results.goldbergloren.com/sitemap.xml

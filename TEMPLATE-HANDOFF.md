@@ -67,10 +67,11 @@ already wired and battle-tested:
 | `generate-geo.mjs` | Baker: `node generate-geo.mjs <master>.html --all` → one flash-free static page per market, GTM hard-baked. |
 | `build-hub.mjs` | Regenerates `index.html`, the internal review hub. NEVER send ad traffic to it (it carries no analytics on purpose). |
 | `generate-kw-test.mjs` | Builds the `-kw.html` keyword-adaptive test variants from named baked pages. Re-run after re-baking those markets. |
+| `generate-support-pages.mjs` | Builds the 6 shared sitelink-destination pages. Reads phone numbers + GTM containers out of the first master's `#geo-data`, so there is no second copy to sync. |
 | `thank-you.html` | Post-submit page; fires `lead_form_submit` + loads the per-market GTM (reads `?geo=&ct=`). |
 | `404.html` | Branded not-found with call CTA; `call_click` tagged `geo:"404"`. |
 | `CAMPAIGN-URLS-*.md` | Final-URL reference handed to whoever builds the ad campaigns. |
-| `tests/form-e2e.mjs`, `tests/kw-e2e.mjs` | Playwright suites (Formspree mocked — no real leads sent). Run before every deploy. |
+| `tests/form-e2e.mjs`, `tests/kw-e2e.mjs`, `tests/support-e2e.mjs` | Playwright suites (Formspree mocked — no real leads sent). Run before every deploy. |
 | `HANDOFF.md` | The live client's operating doc — keep one per client, dated, honest. |
 
 ## 3. New-client build order (~half a day)
@@ -191,6 +192,46 @@ any traffic is safe. Leads arrive tagged `variant:"kw-test"` + the sanitized
 keyword; thank-you gains `&variant=kw` for GA4 splits. Adapt the whitelist
 map per practice (attorney/lawyer for law; plumber/electrician/etc. for
 trades). Evaluate on landing-page-experience QS + conv rate after 2–3 weeks.
+
+## 7b. Shared support pages (sitelink destinations)
+
+`generate-support-pages.mjs` builds six shared pages, one per buying objection:
+`no-fee`, `case-review`, `settlements`, `reviews`, `maximize-compensation`,
+`our-team`. Google treats a distinct URL as a stronger sitelink destination than
+an anchor on the ad's own final URL, and anchors are occasionally disapproved for
+matching that final URL.
+
+They are **shared across all markets but geo-aware at runtime** — `?geo=<slug>`
+swaps the phone and GTM container so call tracking still attributes,
+`?ct=<practice>` points the return CTAs at the matching lander, `?lang=es`
+switches language (same localStorage key as the landers, so the choice follows
+the visitor).
+
+**They are indexable; the landers are not.** Six unique pages can rank. Ninety-two
+near-identical city landers are a doorway-page pattern — keep those `noindex`
+whatever the client asks. Indexing the six requires, and the generator emits:
+a **parameter-free canonical** (without it `?geo`/`?ct`/`?lang` spawn ~176
+duplicates per page), `LegalService` JSON-LD with `sameAs` pointing at the
+client's main site so the subdomain reads as the same entity, absolute OG URLs,
+and a generated `robots.txt` + `sitemap.xml`. **Never** add `aggregateRating` or
+`Review` markup for the client's own reviews on the client's own site — Google
+won't show it and it risks a manual action.
+
+Porting to a new client:
+1. Rewrite the copy in the `PAGES` object — the page **shells** (geo wiring,
+   language toggle, CTA routing, compliance footer) carry over unchanged.
+2. Keep `our-team` honest: no stock photos. Missing headshot → initials
+   monogram, which is what the template ships.
+3. `reviews` and `settlements` are where a client gets a firm into trouble.
+   Only real, attributable reviews; only real figures; prior-results disclaimer
+   in the body of both, not just the footer.
+4. **Verify every bio claim against the client's own published material** before
+   it ships, and record where each one came from. Skip any unsubstantiated
+   success-rate or "best/top" claim even when the client publishes it — those
+   are the ones that draw bar complaints, and the settlement figures do the
+   same persuasive work.
+5. Add them to the hub's Shared Pages section (`SUPPORT` array in
+   `build-hub.mjs`) and to the client's `SITELINKS.md`.
 
 ## 8. Launch QA checklist (every client, every time)
 
