@@ -232,6 +232,16 @@ Porting to a new client:
    same persuasive work.
 5. Add them to the hub's Shared Pages section (`SUPPORT` array in
    `build-hub.mjs`) and to the client's `SITELINKS.md`.
+6. **Dress them in the client's own brand, not the lander template's.** These
+   pages are what a prospect sees after clicking a sitelink, so they should
+   feel like the firm's main site. Get phone screenshots of the client's site,
+   match palette + type, and **self-host the fonts** (`npm pack
+   @fontsource-variable/<family>`, copy the latin `wght` woff2 + LICENSE into
+   `fonts/`) rather than calling Google Fonts. Keep the geo/lang/CTA script and
+   the compliance footer exactly as they are — only the skin changes.
+7. **Keep a dollar-figure allowlist in the test.** Every amount on these pages
+   must trace to the client's published results. When the client's site and
+   older material disagree (it happened here), leave the figure off and ask.
 
 ## 8. Launch QA checklist (every client, every time)
 
