@@ -193,3 +193,78 @@ If they ever target EU/UK traffic (they shouldn't), revisit.
 Copy a master → change title/description/og, hero subhead, results order,
 2–3 FAQ items (+ their ES entries in `#i18n-es`), `case_type` in the JS payload
 and the i18n hero-sub/FAQ ops. Geo JSON carries over unchanged.
+
+## Shared support pages / sitelink destinations (2026-09-22)
+Six shared pages exist so Google Ads sitelinks have real destinations instead of
+anchors on the ad's own final URL. Built by `node generate-support-pages.mjs`:
+
+| Page | Answers |
+|---|---|
+| `no-fee.html` | "What's this going to cost me?" |
+| `case-review.html` | "What actually happens if I call?" |
+| `settlements.html` | "Do they actually recover money?" |
+| `reviews.html` | "What do real clients say?" |
+| `maximize-compensation.html` | "Do I even need a lawyer?" |
+| `our-team.html` | "Who am I actually hiring?" |
+
+**Shared, but geo-aware.** One page serves all 22 markets; it adapts at load:
+- `?geo=<city-slug>` — swaps the phone number and loads that market's GTM
+  container, so CallRail still attributes the call. **Drop this and calls fall
+  back to the national line (512) 960-3887 and stop attributing to the market.**
+- `?ct=<case-type>` — points every "back to the case review" CTA at the matching
+  lander. Defaults to `car-accident`.
+- `?lang=es` — Spanish. Same `gl-lang` localStorage key as the landers, so the
+  visitor's choice follows them from lander to support page and back. An explicit
+  `?lang=en` overrides a stored preference.
+
+Numbers and GTM containers are read out of `car-accident.html`'s `#geo-data` at
+build time — **adding a market there is the only edit needed**, then re-run the
+generator. There is no second copy of the phone list to keep in sync.
+
+Deliberate choices:
+- **`noindex,follow`.** They duplicate lander copy and exist for paid traffic;
+  indexing them would compete with the firm's own site.
+- **No form on any of them.** They hand off to the lander's single form, so
+  there is exactly one form to maintain, test, and keep TCPA-compliant.
+- **Ratings grid on `reviews.html` renders only offices with a real Google
+  rating** (Portland 4.6/489, Fresno 4.2/57, Boise 5.0/37, Fargo 5.0/72,
+  Plantation 4.4/106) — pulled from geo data, never invented. Markets without a
+  rating simply don't get a card.
+- **James Loren has no photo in `img/`**, so he renders as a navy "JL" monogram.
+  Drop a real headshot at `img/james-loren.jpg` and swap the monogram div for an
+  `<img>` when one exists — do not substitute a stock photo.
+- Clarity + ClickCease tags on all six, same as every other page.
+
+Tests: `tests/support-e2e.mjs` (39 checks) — geo phone swap, hostile-param
+fallback, CTA routing, EN/ES round trip, language persistence, dataLayer payload,
+compliance copy, no-duplicate-form, image resolution, hub listing.
+
+### Bio claims — verified 2026-09-22
+Checked against the firm's own published material before using:
+- **George Z. Goldberg** — J.D. University of Miami School of Law, 1994, magna
+  cum laude. First two years in practice at an aviation defense firm, defending
+  airlines and insurance companies in injury litigation; opened his own injury
+  firm in 1996. Founding and managing partner.
+- **James M. Loren** — Senior partner and the firm's most senior trial lawyer;
+  also its CFO. 20+ years in practice, **50+ cases tried to verdict** (this is
+  where the firm's "50+ trials to verdict" figure comes from — it is his
+  record, so attribute it to him, not to the firm generally). Certified Public
+  Accountant. Bar admissions: FL, GA, OR, WA, ME, WI; has tried cases in federal
+  court in TX, CO, NM, ND, MI, TN, IL, IN.
+- Firm-wide: 20,000+ cases and over half a billion dollars recovered since 1994,
+  21 offices in 16 states — all corroborated.
+
+**Two things deliberately NOT used:**
+- The firm publishes a **"98% success rate."** Unsubstantiated success-rate
+  claims are a bar-complaint risk in attorney advertising in several states, and
+  it is not needed — the settlement figures do the same job. Left off every page.
+- The firm's **published national number is (888) 522-0335.** Our pages use the
+  CallRail tracking lines on purpose; do not swap the published number in or
+  call attribution breaks.
+
+**Open item for the client:** neither partner's listed bar admissions include
+Texas state bar (both have federal-court practice in Texas). The footer already
+carries "Attorneys are licensed by state; not all attorneys are licensed in every
+state," which covers the advertising. Worth confirming which Texas-licensed
+attorney is responsible for Texas matters, since DFW and San Antonio are where
+the ad spend is going.
