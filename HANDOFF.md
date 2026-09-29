@@ -2,8 +2,9 @@
 
 > Cloning this system for a NEW client? Start at **TEMPLATE-HANDOFF.md** —
 > the client-agnostic build playbook. Browser test suites live in `tests/`
-> (`cd tests && npm i && node form-e2e.mjs && node kw-e2e.mjs`; set
-> CHROME_PATH if using a preinstalled Chromium) — run before every deploy.
+> (`cd tests && npm i`, then `node form-e2e.mjs`, `kw-e2e.mjs`, `support-e2e.mjs`,
+> `austin-test-e2e.mjs` and `tag-landers-e2e.mjs`; set CHROME_PATH if using a
+> preinstalled Chromium) — run before every deploy.
 
 ## What's here (4 masters × 22 baked cities + hub + thank-you + 404)
 - Masters: `car-accident.html` · `truck-accident.html` · `motorcycle-accident.html`
@@ -372,10 +373,12 @@ it conflicts with the rule that intake copy says *a real person answers*, not
 ## Austin heading-outline test (2026-09-22)
 The client asked for a separate Austin car-accident page, built to an exact
 H1/H2/H3 outline, to test against the current Austin lander.
-`austin-car-accident-attorneys.html` is built by `generate-austin-test.mjs` from
-the baked control (`car-accident-austin-tx.html`): same design, hero, form and
-tracking, rebuilt below the hero around his outline. **Setup, the outline and
-how to read results: `AUSTIN-HEADINGS-TEST.md`.**
+`austin-car-accident-attorneys.html` is built from the baked control
+(`car-accident-austin-tx.html`): same design, hero, form and tracking, rebuilt
+below the hero around his outline. *(Since 2026-09-29 it is built by
+`generate-tag-landers.mjs` along with the other 87 NEW TAGs landers — see below.
+The page itself is unchanged.)* **Setup, the outline and how to read results:
+`NEW-TAGS-LANDERS.md`.**
 
 - **Exact outline, enforced.** The page has exactly his 15 headings and no
   others. The form title, success message and footer column titles are styled
@@ -407,3 +410,39 @@ acuerdo*), and its URL moved to match: `maximize-settlement.html`.
 - In GA4/GTM the `support_page` value for this page changes from
   `maximize-compensation` to `maximize-settlement` from today. Combine the two
   values when comparing periods across the rename.
+
+## NEW TAGs landers — every market × case type (2026-09-29)
+The client's Austin heading outline now covers **all 22 markets × 4 case types:
+88 variant pages**, named `{city}-{case}-attorneys.html` (for example
+`dallas-truck-accident-attorneys.html`). Each is a split-test variant of the live
+lander for the same city and case type. **Setup, the outline per case type,
+state-law notes and how to read results: `NEW-TAGS-LANDERS.md`. Every control →
+variant pair: `CAMPAIGN-URLS-NEW-TAGS.md`.**
+
+- **One generator:** `node generate-tag-landers.mjs` builds all 88 and rewrites
+  `CAMPAIGN-URLS-NEW-TAGS.md`. It replaces `generate-austin-test.mjs`, and the
+  Austin car page it builds is byte-for-byte the one approved on 2026-09-22, so a
+  running Austin experiment is undisturbed. Re-run it, then `node build-hub.mjs`,
+  after re-baking any master.
+- **Same outline everywhere:** `{City} {Case} Attorneys`, with five case-type
+  H3s per case. The client wrote the car list; **the truck, motorcycle and
+  rideshare H3s are ours** and worth his sign-off.
+- **State law per state:** filing window, fault rule, dram shop and rideshare
+  coverage, stated generally, across seven states. Each page's copy names only
+  its own state.
+  Where a state largely shields bars (CA, NV, FL), the drunk-driver card points
+  to UM/UIM coverage instead. Local roads and county come from a `MARKETS` table;
+  a new market fails the build until it has a row.
+- **Tagging:** leads carry `variant: "{city}-headings"` plus `case_type`; the
+  thank-you URL gains `&variant=`; `page_variant` fires in GTM. Austin keeps
+  `austin-headings`.
+- **Same phone number and GTM container as each control**, `noindex`, and
+  Spanish throughout. The ES headline reads *Abogados de Accidentes de Camión en
+  Dallas*.
+- Hub: the **NEW TAGs Landers** section lists all 88, by case type.
+- Tests: `tests/tag-landers-e2e.mjs`. It covers all 88 pages in EN and ES:
+  - exact outline, and every heading and new block translated
+  - control's number, no overflow at 320px
+  - state-law consistency, no other state or market named
+  - sourced dollar figures only
+  - real form submissions on a sample
