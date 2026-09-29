@@ -474,3 +474,29 @@ that the rest is byte-for-byte the B page. So B vs C measures the photo alone.
   ("Evaluación Gratis"…) can't shrink below ~330px. This affects all groups,
   including the live controls. Fixing it means re-baking every master, so it's
   left for a separate change rather than skewing the running tests.
+
+## Two-step form (2026-09-29)
+The lead form is now **two steps instead of three**, on every lander:
+- **Step 1:** one tap on "Were you injured?" (Yes — I've seen a doctor / Yes — but not
+  treated yet / I'm not sure).
+- **Step 2:** name, mobile phone and consent.
+
+The "When did the accident happen?" step is gone.
+
+- **Every page changed together** — the national masters, all 88 city pages, the
+  keyword pages, and NEW TAGs groups B and C. Group A (the live controls) and the
+  test groups keep the same form, so the running comparisons stay fair. The NEW TAGs
+  suite checks that every B and C page carries its control's form byte-for-byte.
+- **Leads no longer carry `when`.** Formspree emails show name, phone, `injured`,
+  case type, market and page. Intake can ask when it happened on the call. If a
+  Zapier or CRM mapping reads `when`, it will now be blank.
+- Phone validation, the consent checkbox, the honeypot, response-aware submit,
+  the thank-you redirect and all tracking are unchanged. Spanish is fully
+  translated ("Paso 1 de 2").
+- Rebuilt with the usual pipeline, in order:
+  1. `node generate-geo.mjs <master>.html --all` for each master
+  2. `node generate-kw-test.mjs`
+  3. `node generate-tag-landers.mjs`
+  4. `node build-hub.mjs`
+
+  The diff was verified to contain only the form change.

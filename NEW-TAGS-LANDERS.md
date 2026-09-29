@@ -15,7 +15,7 @@ and case type.
 Every A / B / C URL is listed in **`CAMPAIGN-URLS-NEW-TAGS.md`**.
 
 **What differs from A to B:** the headline and everything below the hero. **What
-doesn't:** design, hero copy, the 3-step form, phone number,
+doesn't:** design, hero copy, the 2-step form, phone number,
 GTM/CallRail/Clarity/ClickCease, footer. Above the fold, the only change is the H1.
 
 **From B to C, the only difference is the photo** (below). The test suite strips the

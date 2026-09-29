@@ -15,7 +15,7 @@ JSON block inside each master. Every page is one self-contained HTML file — no
 framework, no build pipeline, nothing to break. On top of the layout you get,
 already wired and battle-tested:
 
-- 3-step qualifying form (2 tap-questions → name/phone) with **strict US phone
+- 2-step qualifying form (1 tap-question → name/phone) with **strict US phone
   validation** (NANP: no 0/1-leading area codes/exchanges, no repeated-digit
   junk, no N11; a typed +1 is normalized away)
 - **Response-aware submit**: lead POSTs to Formspree/webhook and the page

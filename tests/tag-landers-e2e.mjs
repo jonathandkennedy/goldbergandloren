@@ -95,6 +95,12 @@ for (const p of PAGES) {
     html.includes(`payload.variant = "${p.tag}";`) && html.includes(`"&ct=${p.cs}&variant=${p.tag}"`) && html.includes(`{event:"page_variant",variant:"${p.tag}"}`));
   const gtm = s => [...new Set(s.match(/GTM-[A-Z0-9]+/g) || [])].join(",");
   expect("same GTM container as the control", p.file, gtm(html) === gtm(ctl), `${gtm(html)} vs ${gtm(ctl)}`);
+  // every group shows the control's form, byte-for-byte once its two titles are heading tags again
+  const formOf = s => (s.match(/<form class="card" id="case-form"[\s\S]*?<\/form>/) || [""])[0];
+  const variantForm = formOf(html).replace(`<p class="card-h">What's Your Case Worth?</p>`, `<h2>What's Your Case Worth?</h2>`)
+    .replace(`<p class="s-h">Got it<span id="s-name"></span>.</p>`, `<h3>Got it<span id="s-name"></span>.</h3>`);
+  expect("same two-step form as the control", p.file,
+    variantForm === formOf(ctl) && variantForm.includes("Step 1 of 2") && !variantForm.includes('data-k="when"'));
   expect("hub links the page under NEW TAGs Landers", p.file, hubTags.includes(`href="${p.file}"`));
   if (p.group === "B") {
     expect("CAMPAIGN-URLS-NEW-TAGS.md lists its A, B and C URLs", p.file,
@@ -308,7 +314,6 @@ for (const p of SAMPLE) {
   // the form converts and tags the lead with its group
   await fp.goto(`${HOST}${p.file}?lang=en`);
   const n = posts.length;
-  await fp.click('.opt[data-k="when"]');
   await fp.click('.opt[data-k="injured"]');
   await fp.fill("#f-name", "Test Person");
   await fp.fill("#f-phone", "(512) 555-0142");
@@ -327,7 +332,6 @@ for (const p of SAMPLE) {
 const junk = SAMPLE.find(p => p.group === "C");
 await fp.goto(`${HOST}${junk.file}?lang=en`);
 const n0 = posts.length;
-await fp.click('.opt[data-k="when"]');
 await fp.click('.opt[data-k="injured"]');
 await fp.fill("#f-name", "Bot");
 await fp.fill("#f-phone", "0000001");

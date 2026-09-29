@@ -67,7 +67,6 @@ check("kw page shows (214) 466-2129", (await page.content()).includes("tel:+1214
 
 // 8. submit on kw page → payload carries variant + kw, redirect has variant=kw
 await page.goto("http://localhost:8933/car-accident-dallas-tx-kw.html?kw=car+accident+attorney+near+me");
-await page.click('.opt[data-k="when"]');
 await page.click('.opt[data-k="injured"]');
 await page.fill("#f-name", "Test Person");
 await page.fill("#f-phone", "(512) 960-3887");
