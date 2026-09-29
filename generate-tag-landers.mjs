@@ -28,12 +28,18 @@
  *
  * Leads carry variant:"{city}-headings" (Austin's original tag, extended), the
  * thank-you redirect gains &variant=…, and a page_variant event goes to the dataLayer.
+ *
+ * Group C: every page also gets a twin, {city}-{case}-attorneys-photo.html, that is
+ * the same page plus the partners' photo (after the call buttons on phones, standing
+ * behind the form on desktop), tagged "{city}-headings-photo". Nothing else differs,
+ * so B vs C measures the photo alone.
+ *
  * Re-run after re-baking the landers (node generate-geo.mjs <master>.html --all).
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
-const master = readFileSync("car-accident.html", "utf8");
+const master = readFileSync(new URL("car-accident.html", import.meta.url), "utf8");  // importable from any cwd
 const GEOS = JSON.parse(master.match(/<script type="application\/json" id="geo-data">([\s\S]*?)<\/script>/)[1]);
 
 // ---------------------------------------------------------------- state law, stated generally
@@ -230,6 +236,35 @@ const CSS_ADD = `
 @media(max-width:520px){.o24-ctas .btn,.type-cta .btn{width:100%;align-self:stretch}.why-block{padding:22px 16px}.why-block .rcard{padding:16px 8px}}
 `;
 
+// group C only: the partners' photo. Phones: in the hero flow right after the call buttons,
+// fading out at the waist. Desktop: lifted into the form column, the card overlapping its base.
+// The card's margin-top is a percentage of the column width, so it tracks the photo's height
+// (624/960 = 65% of its width) at any viewport.
+export const PHOTO_CSS = `
+/* ---- group C: the partners' photo — after the call buttons on phones, behind the form on desktop ---- */
+.hero-team{position:relative;z-index:0;margin:22px auto 0;max-width:460px}
+.hero-team::before{content:"";position:absolute;left:5%;right:5%;top:10%;bottom:0;border-radius:999px 999px 0 0;background:linear-gradient(180deg,#e4f0ed 0%,rgba(242,245,249,0) 88%)}
+.hero-team img{position:relative;display:block;width:100%;height:auto}
+.hero-team figcaption{position:absolute;left:0;right:0;bottom:10px;z-index:1;display:flex;justify-content:space-between;gap:6px}
+.tn{background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 18px rgba(21,59,102,.16);padding:6px 11px 7px;line-height:1.2}
+.tn b{display:block;font-size:.8rem;font-weight:800;color:var(--navy);white-space:nowrap}
+.tn i{display:block;margin-top:2px;font-style:normal;font-size:.58rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--btn);white-space:nowrap}
+@media(max-width:959px){.hero-team img{-webkit-mask-image:linear-gradient(#000 70%,transparent 97%);mask-image:linear-gradient(#000 70%,transparent 97%)}}
+@media(max-width:374px){.tn{padding:5px 8px 6px}.tn b{font-size:.72rem}.tn i{font-size:.52rem;letter-spacing:.08em}}
+@media(min-width:960px){
+.hero-in{grid-template-rows:auto 1fr}
+.hero-team{position:absolute;top:56px;right:20px;width:calc((100% - 76px) * .8 / 1.85);max-width:none;margin:0}
+.hero-team figcaption{bottom:62px}
+.hero-in>.card{z-index:1;margin-top:calc(65% - 50px)}
+}
+`;
+export const PHOTO_FIGURE = `<figure class="hero-team">
+        <img src="img/partners-720.webp" srcset="img/partners-480.webp 480w, img/partners-720.webp 720w, img/partners-960.webp 960w" sizes="(min-width: 960px) 480px, (min-width: 500px) 460px, calc(100vw - 40px)" width="960" height="624" alt="James M. Loren and George Z. Goldberg, partners of Goldberg &amp; Loren" fetchpriority="high">
+        <figcaption><span class="tn"><b>James M. Loren</b><i id="tp1">Senior Partner</i></span><span class="tn"><b>George Z. Goldberg</b><i id="tp2">Founding Partner</i></span></figcaption>
+      </figure>
+      `;
+export const PHOTO_OPS = [["t", "#tp1", 0, "Socio Sénior"], ["t", "#tp2", 0, "Socio Fundador"]];
+
 // every positional Spanish op aimed at a section that no longer exists
 const DROP = new Set([".eyebrow", ".sec-h", ".sec-sub", ".rcard span", ".rcard em", ".rhigh", ".fine",
   ".insider .grid p", ".mult > span", ".tick-chip", ".insider figcaption", ".faq summary", ".faq details p",
@@ -238,6 +273,7 @@ const RESELECT = { ".card h2": ".card .card-h", ".success h3": ".success .s-h", 
 
 export const short = geo => geo.replace(/-[a-z]{2}$/, "");
 export const outFile = (geo, cs) => `${short(geo)}-${cs}-attorneys.html`;
+export const photoFile = (geo, cs) => `${short(geo)}-${cs}-attorneys-photo.html`;
 
 // "Our Austin-area office is in Lakeway…" only where the market really has its own office
 function officeSentence(g, m) {
@@ -250,8 +286,9 @@ function officeSentence(g, m) {
   return [`W${tail[0].slice(1)}`, `R${tail[1].slice(1)}`];
 }
 
-function build(geo, cs) {
-  const SRC = `${cs}-${geo}.html`, OUT = outFile(geo, cs), VARIANT = `${short(geo)}-headings`;
+function build(geo, cs, photo = false) {
+  const SRC = `${cs}-${geo}.html`, OUT = photo ? photoFile(geo, cs) : outFile(geo, cs);
+  const VARIANT = `${short(geo)}-headings${photo ? "-photo" : ""}`;
   const g = GEOS[geo], C = CASES[cs];
   const [st, roads, roadsEs, area, areaEsH, areaEsBody] = MARKETS[geo];
   const S = STATES[st];
@@ -413,6 +450,10 @@ function build(geo, cs) {
   mustReplace('<h3>Got it<span id="s-name"></span>.</h3>', '<p class="s-h">Got it<span id="s-name"></span>.</p>', "success heading");
   for (const t of ["Practice Areas", "Locations"]) mustReplace(`<h3>${t}</h3>`, `<p class="f-h">${t}</p>`, `footer "${t}" heading`);
   mustReplace("</style>", CSS_ADD + "</style>", "closing style tag");
+  if (photo) {
+    mustReplace("</style>", PHOTO_CSS + "</style>", "closing style tag (photo)");
+    mustReplace('<div class="benefits">', PHOTO_FIGURE + '<div class="benefits">', "hero benefits row");
+  }
 
   const start = html.indexOf('<section class="results" id="results">');
   const end = html.indexOf("</main>");
@@ -430,7 +471,7 @@ function build(geo, cs) {
   // H1 — EN: "" + "{city}" + " {Case} Attorneys"; ES: "Abogados de Accidentes de {Caso}" + " en {ciudad}" (geo data) + ""
   ops = ops.map(o => o[1] === ".h1-pre" ? ["t", ".h1-pre", 0, `Abogados de Accidentes de ${C.es}`]
                    : o[1] === ".h1-post" ? ["t", ".h1-post", 0, ""] : o);
-  I18N.ops = ops.concat(OPS);
+  I18N.ops = ops.concat(OPS, photo ? PHOTO_OPS : []);
   I18N.title = `Abogados de Accidentes de ${C.es} | Consulta Gratis 24/7 | Goldberg & Loren`;
   html = html.replace(I18N_RE, (_, a, __, c) => a + JSON.stringify(I18N).replace(/<\//g, "<\\/") + c);
 
@@ -448,44 +489,46 @@ function build(geo, cs) {
   return ok;
 }
 
-// control → variant pairs for setting up the Google Ads experiments; Texas first
+// control → variant URLs for setting up the Google Ads experiments; Texas first
 function urlTable() {
   const BASE = "https://results.goldbergloren.com/";
   const geos = [...TAG_GEOS].sort((a, b) => (MARKETS[b][0] === "TX") - (MARKETS[a][0] === "TX"));
   const rows = geos.flatMap(geo => CASE_TYPES.map(cs =>
-    `| ${GEOS[geo].city} | ${CASES[cs].label} | ${BASE}${cs}-${geo}.html | ${BASE}${outFile(geo, cs)} | \`${short(geo)}-headings\` |`));
+    `| ${GEOS[geo].city} | ${CASES[cs].label} | ${BASE}${cs}-${geo}.html | ${BASE}${outFile(geo, cs)} | ${BASE}${photoFile(geo, cs)} |`));
   return `# NEW TAGs landers — campaign URLs
 
 Generated by \`node generate-tag-landers.mjs\` — don't edit by hand. How to run the
 test and read the results: \`NEW-TAGS-LANDERS.md\`.
 
-Each variant carries the same phone number and GTM container as its control, so
-calls and form leads are tracked the same way. Add ?lang=es to either URL for Spanish.
-Leads from a variant carry its lead tag (Formspree \`variant\`, GA4 \`&variant=\`)
-plus the usual \`case_type\`.
+- **A · Control** — the live lander, unchanged. Leads carry no \`variant\`.
+- **B · Headings** — rebuilt around the client's heading outline. Lead tag \`{city}-headings\`.
+- **C · Headings + photo** — B plus the partners' photo, nothing else. Lead tag \`{city}-headings-photo\`.
 
-| Market | Case type | Control (live lander) | Variant (NEW TAGs) | Lead tag |
+Every group carries the same phone number and GTM container, so calls and form leads
+are tracked the same way. Lead tags reach Formspree (\`variant\`) and GA4 (\`&variant=\` on
+the thank-you URL) alongside the usual \`case_type\`. Add ?lang=es to any URL for Spanish.
+
+| Market | Case type | A · Control (live) | B · Headings | C · Headings + photo |
 |---|---|---|---|---|
 ${rows.join("\n")}
 `;
 }
 
 // ---------------------------------------------------------------- run
-// importable (build-hub.mjs reads outFile and CASE_TYPES); only builds when run directly
+// importable (build-hub.mjs reads outFile, photoFile and CASE_TYPES); only builds when run directly
 export const CASE_TYPES = Object.keys(CASES);
 export const TAG_GEOS = Object.keys(GEOS).filter(k => k !== "default");
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const missing = TAG_GEOS.filter(k => !MARKETS[k]);
   if (missing.length) { console.error(`add a MARKETS row (state, roads, county) for: ${missing.join(", ")}`); process.exit(1); }
   const names = new Set();
-  for (const geo of TAG_GEOS) for (const cs of CASE_TYPES) {
-    const f = outFile(geo, cs);
+  for (const geo of TAG_GEOS) for (const cs of CASE_TYPES) for (const f of [outFile(geo, cs), photoFile(geo, cs)]) {
     if (names.has(f)) { console.error(`file name collision: ${f}`); process.exit(1); }
     names.add(f);
   }
   let built = 0, failed = 0;
-  for (const geo of TAG_GEOS) for (const cs of CASE_TYPES) build(geo, cs) ? built++ : failed++;
+  for (const geo of TAG_GEOS) for (const cs of CASE_TYPES) for (const photo of [false, true]) build(geo, cs, photo) ? built++ : failed++;
   if (failed) { console.error(`${failed} NEW TAGs lander(s) FAILED — nothing written for them`); process.exit(1); }
   writeFileSync("CAMPAIGN-URLS-NEW-TAGS.md", urlTable());
-  console.log(`built ${built} NEW TAGs landers (${TAG_GEOS.length} markets × ${CASE_TYPES.length} case types); every outline matches; CAMPAIGN-URLS-NEW-TAGS.md updated`);
+  console.log(`built ${built} NEW TAGs landers (${TAG_GEOS.length} markets × ${CASE_TYPES.length} case types × groups B and C); every outline matches; CAMPAIGN-URLS-NEW-TAGS.md updated`);
 }

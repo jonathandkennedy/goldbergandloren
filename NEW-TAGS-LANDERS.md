@@ -2,21 +2,25 @@
 
 A split test of the client's requested page structure against the current
 landers. He gave the outline for Austin car accidents. It is now built for every
-market and case type: **22 markets × 4 case types = 88 variant pages**. Each one
-is tested against the live lander for the same city and case type.
+market and case type: **22 markets × 4 case types**. There are two test groups,
+88 pages each, and every page is tested against the live lander for the same city
+and case type.
 
-| | URL pattern | Example |
+| Group | URL pattern | Example |
 |---|---|---|
-| **Control** | `{case}-{market}.html` — the live lander, unchanged | `truck-accident-dallas-tx.html` |
-| **Variant** | `{city}-{case}-attorneys.html` — rebuilt around the outline | `dallas-truck-accident-attorneys.html` |
+| **A · Control** | `{case}-{market}.html` — the live lander, unchanged | `truck-accident-dallas-tx.html` |
+| **B · Headings** | `{city}-{case}-attorneys.html` — rebuilt around the outline | `dallas-truck-accident-attorneys.html` |
+| **C · Headings + photo** | `{city}-{case}-attorneys-photo.html` — B plus the partners' photo | `dallas-truck-accident-attorneys-photo.html` |
 
-Every control → variant pair, with full URLs and lead tags, is listed in
-**`CAMPAIGN-URLS-NEW-TAGS.md`**.
+Every A / B / C URL is listed in **`CAMPAIGN-URLS-NEW-TAGS.md`**.
 
-**What differs:** the headline and everything below the hero. **What doesn't:**
-design, hero copy, the 3-step form, phone number, GTM/CallRail/Clarity/ClickCease,
-footer. Above the fold, the only change is the H1. That keeps the test honest:
-if a variant wins, it's the content and structure that won it.
+**What differs from A to B:** the headline and everything below the hero. **What
+doesn't:** design, hero copy, the 3-step form, phone number,
+GTM/CallRail/Clarity/ClickCease, footer. Above the fold, the only change is the H1.
+
+**From B to C, the only difference is the photo** (below). The test suite strips the
+photo out of every C page and checks that what's left is byte-for-byte the B page.
+That keeps each comparison honest: whichever group wins, you know what won it.
 
 ## The outline
 
@@ -63,13 +67,37 @@ both languages.
 Two wording fixes from the brief: "schedule a free consultations" → singular, and
 "over 500 million dollars won" is written "Over $500 Million Won".
 
+## Group C — the partners' photo
+
+The cutout of **James M. Loren** (left) and **George Z. Goldberg** (right), arms
+crossed — the same shot as the Our Team page, with the background removed.
+
+- **Phones:** right under the two call buttons, so the faces are in the first
+  screen. The headline and both buttons stay exactly where they are on B; the
+  photo fades out at the waist. Everything below moves down about 250px.
+- **Desktop:** in the form column beside the headline, the partners standing
+  behind the "What's Your Case Worth?" card, which overlaps the base of the photo.
+  The card moves down about 260px, with its first question still above the fold.
+- **Name tags** on the photo: *James M. Loren · Senior Partner* and *George Z.
+  Goldberg · Founding Partner* — the titles the Our Team page uses. In Spanish:
+  *Socio Sénior* and *Socio Fundador*.
+- **Weight:** WebP at three sizes (17 KB, 28 KB, 35 KB); each phone or screen loads
+  one. The image has fixed dimensions (no layout shift) and loads with high priority.
+
 ## Running it in Google Ads
 
-For each campaign you test, go to **Experiments → Ad variations** on that
-campaign. Add a variation that **updates the final URL** from the control to its
-variant (pairs are in `CAMPAIGN-URLS-NEW-TAGS.md`) and use a **50% split**. A
-custom experiment does the same job: a campaign draft whose ads point at the
-variant.
+Google Ads experiments compare two versions at a time, so read the three groups
+as pairs:
+
+- **A vs B:** do the client's headings beat today's page?
+- **B vs C:** does the photo help on top of them? The photo is the only
+  difference, so this is the clean read on the photo.
+- **A vs C:** the full new page against today's page, if you want one answer.
+
+For each pair, go to **Experiments → Ad variations** on the campaign. Add a
+variation that **updates the final URL** from one group's page to the other's
+(every URL is in `CAMPAIGN-URLS-NEW-TAGS.md`) and use a **50% split**. A custom
+experiment does the same job: a campaign draft whose ads point at the other page.
 
 - **Start where the volume is.** Every variant is the same template, so you don't
   need 88 experiments to learn whether it works. Run it on the busiest campaigns
@@ -86,16 +114,17 @@ variant.
 
 ## Reading the results
 
-- **Formspree:** variant leads carry `variant: "{city}-headings"`, for example
-  `austin-headings` or `dallas-headings`. They also carry the usual `case_type`,
-  so Dallas truck and Dallas car stay separable. Control leads have no `variant`
-  field.
-- **GA4:** the thank-you URL gains `&variant={city}-headings` next to `ct=`.
+- **Formspree:** B leads carry `variant: "{city}-headings"` (`austin-headings`,
+  `dallas-headings`…) and C leads `variant: "{city}-headings-photo"`. Both carry
+  the usual `case_type`, so Dallas truck and Dallas car stay separable. Control
+  leads have no `variant` field. Filter on the exact value or on the ending:
+  "contains `headings`" matches both groups.
+- **GA4:** the thank-you URL gains `&variant=…` with the same value, next to `ct=`.
 - **GTM:** a `page_variant` event fires on every variant page load, for
   session-level comparisons (bounce, scroll, time on page).
 - **Clarity:** filter recordings by URL to watch how people read the longer pages.
-  On a phone the variants run about 10,100–10,500px, against 7,200–7,400px for
-  the controls.
+  On a phone the B pages run about 10,100–10,500px, against 7,200–7,400px for
+  the controls; C pages are about 250px longer than B.
 
 ## Copy notes worth a look before it runs
 
@@ -138,10 +167,11 @@ variant.
 
 ## Rebuilding
 
-`node generate-tag-landers.mjs` rebuilds all 88 variants from the baked controls
-and rewrites `CAMPAIGN-URLS-NEW-TAGS.md`. Then `node build-hub.mjs` refreshes
-the hub. Re-run both after re-baking any master (`node generate-geo.mjs
-<master>.html --all`) so both arms stay in step.
+`node generate-tag-landers.mjs` rebuilds all 176 test pages (groups B and C) from
+the baked controls and rewrites `CAMPAIGN-URLS-NEW-TAGS.md`. Then `node
+build-hub.mjs` refreshes the hub. Re-run both after re-baking any master (`node
+generate-geo.mjs <master>.html --all`) so all three groups stay in step. The
+photo files are `img/partners-480.webp`, `-720` and `-960`.
 
 A new market needs one `MARKETS` row in the generator: its state, three busy
 roads (EN/ES) and its county (EN/ES). The build refuses to run until the row is
@@ -149,5 +179,8 @@ there. The Austin car page it produces is byte-for-byte the page approved on
 2026-09-22.
 
 Tests:
-- `tests/tag-landers-e2e.mjs` checks all 88 pages, EN and ES, against their controls.
+- `tests/tag-landers-e2e.mjs` checks all 176 pages, EN and ES, against their controls:
+  - that C is exactly B plus the photo
+  - that on phones the faces show in the first screen without moving the call button
+  - where the photo sits on desktop
 - `tests/austin-test-e2e.mjs` checks the Austin page against the client's verbatim outline.

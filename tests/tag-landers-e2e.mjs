@@ -1,17 +1,23 @@
-// E2E for the NEW TAGs landers — {city}-{case}-attorneys.html, every market × case type.
-// Each is checked against its control ({case}-{geo}.html) and against the client's
-// outline, independently of the generator's own tables. Formspree mocked, third parties blocked.
+// E2E for the NEW TAGs landers, every market × case type, in both test groups:
+//   B  {city}-{case}-attorneys.html        the client's heading outline
+//   C  {city}-{case}-attorneys-photo.html  B plus the partners' photo, nothing else
+// Each page is checked against its control ({case}-{geo}.html, group A) and against the
+// client's outline, independently of the generator's own tables. Formspree mocked,
+// third parties blocked.
 import { chromium } from "playwright";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { PHOTO_CSS, PHOTO_FIGURE, PHOTO_OPS } from "../generate-tag-landers.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url)).replace(/\/$/, "");
+const TYPES = { webp: "image/webp", jpg: "image/jpeg", png: "image/png", woff2: "font/woff2" };
 const server = createServer(async (req, res) => {
+  const path = decodeURIComponent(req.url.split("?")[0]).replace(/^\/+/, "");
   try {
-    const body = await readFile(ROOT + "/" + decodeURIComponent(req.url.split("?")[0]).replace(/^\/+/, ""));
-    res.writeHead(200, { "content-type": "text/html" });
+    const body = await readFile(ROOT + "/" + path);
+    res.writeHead(200, { "content-type": TYPES[path.split(".").pop()] || "text/html" });
     res.end(body);
   } catch { res.writeHead(404); res.end(); }
 });
@@ -52,12 +58,16 @@ const LAW = {
 };
 const SOURCED = new Set(["$14,600,000", "$8,750,000", "$4,500,000", "$2,500,000", "$1,025,000", "$750,000",
   "$550M+", "$500 Million", "$77,600", "$17,600", "$1,000,000"]);
+const PARTNERS = { tp1: ["James M. Loren", "Senior Partner", "Socio Sénior"], tp2: ["George Z. Goldberg", "Founding Partner", "Socio Fundador"] };
 
 const GEOS = JSON.parse(readFileSync(ROOT + "/car-accident.html", "utf8")
   .match(/<script type="application\/json" id="geo-data">([\s\S]*?)<\/script>/)[1]);
 const geoList = Object.keys(GEOS).filter(k => k !== "default");
 const short = geo => geo.replace(/-[a-z]{2}$/, "");
-const PAGES = geoList.flatMap(geo => Object.keys(CASES).map(cs => ({ geo, cs, file: `${short(geo)}-${cs}-attorneys.html`, control: `${cs}-${geo}.html` })));
+const PAGES = geoList.flatMap(geo => Object.keys(CASES).flatMap(cs => [
+  { group: "B", geo, cs, file: `${short(geo)}-${cs}-attorneys.html`, tag: `${short(geo)}-headings` },
+  { group: "C", geo, cs, file: `${short(geo)}-${cs}-attorneys-photo.html`, tag: `${short(geo)}-headings-photo` },
+].map(p => ({ ...p, control: `${cs}-${geo}.html` }))));
 const cities = geoList.map(g => GEOS[g].city);
 
 // ---- aggregate results: one line per check, listing the pages that fail it
@@ -70,34 +80,47 @@ const expect = (label, file, ok, detail = "") => {
 
 // ---- static: files exist, controls untouched, lead tagging wired, docs and hub list every page
 const hub = readFileSync(ROOT + "/index.html", "utf8");
+const hubTags = hub.split("<h2>NEW TAGs Landers</h2>")[1]?.split("</section>")[0] || "";
 const urlDoc = readFileSync(ROOT + "/CAMPAIGN-URLS-NEW-TAGS.md", "utf8");
+const BASE = "https://results.goldbergloren.com/";
+const photoOpsJson = JSON.stringify(PHOTO_OPS).slice(1, -1);
 for (const p of PAGES) {
   const exists = existsSync(`${ROOT}/${p.file}`);
-  expect("page exists for every market × case type", p.file, exists);
+  expect("page exists for every market × case type × group", p.file, exists);
   if (!exists) continue;
   const html = readFileSync(`${ROOT}/${p.file}`, "utf8");
   const ctl = readFileSync(`${ROOT}/${p.control}`, "utf8");
-  const tag = `${short(p.geo)}-headings`;
   expect("control carries no variant tag", p.control, !/payload\.variant|page_variant|-headings/.test(ctl));
-  expect("lead payload, thank-you URL and dataLayer carry the variant tag", p.file,
-    html.includes(`payload.variant = "${tag}";`) && html.includes(`"&ct=${p.cs}&variant=${tag}"`) && html.includes(`{event:"page_variant",variant:"${tag}"}`));
+  expect("lead payload, thank-you URL and dataLayer carry the group's tag", p.file,
+    html.includes(`payload.variant = "${p.tag}";`) && html.includes(`"&ct=${p.cs}&variant=${p.tag}"`) && html.includes(`{event:"page_variant",variant:"${p.tag}"}`));
   const gtm = s => [...new Set(s.match(/GTM-[A-Z0-9]+/g) || [])].join(",");
   expect("same GTM container as the control", p.file, gtm(html) === gtm(ctl), `${gtm(html)} vs ${gtm(ctl)}`);
-  expect("hub links the page under NEW TAGs Landers", p.file, hub.split("<h2>NEW TAGs Landers</h2>")[1]?.includes(`href="${p.file}"`));
-  expect("CAMPAIGN-URLS-NEW-TAGS.md pairs it with its control", p.file,
-    urlDoc.includes(`| https://results.goldbergloren.com/${p.control} | https://results.goldbergloren.com/${p.file} | \`${tag}\` |`));
+  expect("hub links the page under NEW TAGs Landers", p.file, hubTags.includes(`href="${p.file}"`));
+  if (p.group === "B") {
+    expect("CAMPAIGN-URLS-NEW-TAGS.md lists its A, B and C URLs", p.file,
+      urlDoc.includes(`| ${BASE}${p.control} | ${BASE}${p.file} | ${BASE}${p.file.replace(/\.html$/, "-photo.html")} |`));
+    expect("B carries no photo", p.file, !html.includes("hero-team") && !html.includes("partners-"));
+  } else {
+    // C must be B plus the photo block and nothing else: strip it, rename the tag, and the bytes must match
+    const b = readFileSync(`${ROOT}/${p.file.replace("-photo.html", ".html")}`, "utf8");
+    const stripped = html.replace(PHOTO_CSS, "").replace(PHOTO_FIGURE, "").replace("," + photoOpsJson + "]", "]")
+      .replaceAll(`${p.tag}"`, `${p.tag.replace(/-photo$/, "")}"`);
+    expect("C is exactly B plus the photo (byte-for-byte once removed)", p.file, stripped === b);
+  }
 }
 const hubLinks = [...hub.matchAll(/href="([^"#?]+)/g)].map(m => m[1]);
 const dead = hubLinks.filter(f => !existsSync(`${ROOT}/${f}`));
 expect("every hub link resolves", "index.html", dead.length === 0, dead.join(", "));
+const imgs = ["img/partners-480.webp", "img/partners-720.webp", "img/partners-960.webp"].filter(f => !existsSync(`${ROOT}/${f}`));
+expect("partner photo files exist", "img/", !imgs.length, imgs.join(", "));
 
 // ---- browser
 const browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
 const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type,Accept" };
 const posts = [];
-const newCtx = async width => {
+const newCtx = async (width, height = 800) => {
   // non-mobile on purpose: mobile emulation widens the layout viewport and hides overflow
-  const ctx = await browser.newContext({ viewport: { width, height: 800 } });
+  const ctx = await browser.newContext({ viewport: { width, height } });
   await ctx.route(/formspree\.io/, async route => {
     if (route.request().method() === "OPTIONS") return route.fulfill({ status: 204, headers: CORS });
     posts.push(JSON.parse(route.request().postData()));
@@ -106,18 +129,26 @@ const newCtx = async width => {
   await ctx.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com/, r => r.abort());
   return ctx;
 };
+const photoLoaded = pg => pg.waitForFunction(() => { const i = document.querySelector(".hero-team img"); return !i || i.complete; }, null, { timeout: 5000 }).catch(() => {});
 const snapshot = pg => pg.evaluate(() => {
   const clean = s => s.replace(/\s+/g, " ").trim();
   const body = document.body.cloneNode(true);
   body.querySelectorAll("script,style,noscript").forEach(e => e.remove());
   const j = JSON.parse(document.getElementById("i18n-es").textContent);
+  const img = document.querySelector(".hero-team img");
+  const vw = document.documentElement.clientWidth;
   return {
     outline: [...document.querySelectorAll("h1,h2,h3,h4,h5,h6")].map(e => [e.tagName.toLowerCase(), clean(e.textContent)]),
     ah: Object.fromEntries([...document.querySelectorAll('[id^="ah"]')].map(e => [e.id, clean(e.textContent)])),
+    tp: Object.fromEntries([...document.querySelectorAll('[id^="tp"]')].map(e => [e.id, clean(e.textContent)])),
+    names: [...document.querySelectorAll(".hero-team .tn b")].map(e => clean(e.textContent)),
+    photo: img ? { ok: img.complete && img.naturalWidth > 0, w: img.getAttribute("width"), h: img.getAttribute("height"),
+      prio: img.getAttribute("fetchpriority"), lazy: img.getAttribute("loading"), alt: img.alt,
+      fits: (r => r.left >= -0.5 && r.right <= vw + 0.5)(document.querySelector(".hero-team").getBoundingClientRect()) } : null,
     orphans: j.ops.filter(o => !document.querySelectorAll(o[1])[o[2]]).map(o => `${o[1]}[${o[2]}]`),
     tels: [...new Set([...document.querySelectorAll("a.js-tel")].map(a => a.getAttribute("href")))],
     nums: [...new Set([...document.querySelectorAll(".js-tel-text")].map(e => e.textContent))],
-    over: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    over: document.documentElement.scrollWidth - vw,
     text: clean(body.textContent),
     robots: document.querySelector('meta[name="robots"]')?.content || "",
     missingAnchors: ["case-form", "results", "how-it-works", "attorneys", "reviews", "faq"].filter(id => !document.getElementById(id)),
@@ -134,7 +165,7 @@ const ctx = await newCtx(320);
 const pg = await ctx.newPage();
 const t0 = Date.now();
 for (const p of PAGES) {
-  const { geo, cs, file, control } = p;
+  const { geo, cs, file, control, group } = p;
   const C = CASES[cs], g = GEOS[geo], st = geo.slice(-2), law = LAW[st], city = g.city;
   const WANT = [
     ["h1", `${city} ${C.label} Attorneys`],
@@ -152,7 +183,8 @@ for (const p of PAGES) {
 
   // EN
   await pg.goto(HOST + file + "?lang=en");
-  const en = await pg.evaluate(() => 0).then(() => snapshot(pg));
+  await photoLoaded(pg);
+  const en = await snapshot(pg);
   const diff = en.outline.map((h, i) => JSON.stringify(h) === JSON.stringify(WANT[i]) ? null : `#${i + 1} ${JSON.stringify(h)}`).filter(Boolean);
   expect("EN outline is exactly the client's, generalised", file, en.outline.length === WANT.length && !diff.length,
     `${en.outline.length}/${WANT.length} ${diff.slice(0, 2).join(" ")}`);
@@ -162,7 +194,7 @@ for (const p of PAGES) {
     `${en.tels} ${en.nums} vs ${ctlTel} ${ctlNum}`);
   expect("every Spanish op lands on an element", file, !en.orphans.length, en.orphans.join(", "));
   expect("sitelink anchors exist", file, !en.missingAnchors.length, en.missingAnchors.join(", "));
-  expect("page_variant pushed once", file, en.dl.length === 1 && en.dl[0] === `${short(geo)}-headings`, JSON.stringify(en.dl));
+  expect("page_variant pushed once, with the group's tag", file, en.dl.length === 1 && en.dl[0] === p.tag, JSON.stringify(en.dl));
   expect("footer compliance copy intact", file, en.foot.includes("Attorney Advertising") && en.foot.includes("George Z. Goldberg"));
   const figs = [...new Set(en.text.match(/\$\d[\d,.]*(?:\s?Million|M\+)?/g) || [])].map(f => f.replace(/[.,]$/, ""));
   const unsourced = figs.filter(f => !SOURCED.has(f));
@@ -170,6 +202,15 @@ for (const p of PAGES) {
   expect("no unconfirmed $8.7M trucking figure", file, !/8,700,000|\$8\.7M/.test(en.text));
   expect('"Over $500 Million Won" explained as recovered, with the disclaimer', file,
     en.text.includes("recovered $550M+") && en.text.includes("Prior results do not guarantee"));
+  if (group === "C") {
+    const ph = en.photo;
+    expect("C: partners' photo loads, sized to avoid layout shift, fetched early", file,
+      ph && ph.ok && ph.w === "960" && ph.h === "624" && ph.prio === "high" && !ph.lazy, JSON.stringify(ph));
+    expect("C: name tags read James M. Loren (left) and George Z. Goldberg (right)", file,
+      JSON.stringify(en.names) === JSON.stringify([PARTNERS.tp1[0], PARTNERS.tp2[0]]) && en.tp.tp1 === PARTNERS.tp1[1] && en.tp.tp2 === PARTNERS.tp2[1] &&
+      /^James M\. Loren and George Z\. Goldberg/.test(ph?.alt || ""), `${en.names} ${JSON.stringify(en.tp)} ${ph?.alt}`);
+    expect("C: photo fits the screen at 320px (EN)", file, ph?.fits);
+  }
 
   // state law, stated the same way everywhere on the page
   const ahEn = Object.values(en.ah).join(" ");
@@ -206,6 +247,8 @@ for (const p of PAGES) {
   expect("every heading translates", file, !sameHead.length, sameHead.join(" | "));
   const sameAh = Object.keys(en.ah).filter(id => es.ah[id] === en.ah[id]);
   expect("every new block translates (no English left)", file, !sameAh.length, sameAh.map(id => `#${id} "${en.ah[id].slice(0, 40)}"`).join(", "));
+  if (group === "C")
+    expect("C: partner titles translate", file, es.tp.tp1 === PARTNERS.tp1[2] && es.tp.tp2 === PARTNERS.tp2[2], JSON.stringify(es.tp));
   expect("ES keeps the control's number everywhere", file, es.nums.length === 1 && es.nums[0] === ctlNum && es.tels.length === 1 && es.tels[0] === ctlTel,
     `${es.nums} ${es.tels}`);
   const ahEs = Object.values(es.ah).join(" ");
@@ -217,17 +260,35 @@ for (const p of PAGES) {
 const secs = ((Date.now() - t0) / 1000).toFixed(0);
 await ctx.close();
 
-// a sample, deeper: language round trip, 390/1440 layout, real submissions
-const SAMPLE = ["austin-tx:car-accident", "dallas-tx:truck-accident", "boise-id:motorcycle-accident", "plantation-fl:rideshare-accident",
-  "dallas-fort-worth-tx:rideshare-accident", "fargo-nd:truck-accident", "los-angeles-ca:car-accident", "downtown-dallas-tx:motorcycle-accident"]
-  .map(k => PAGES.find(p => `${p.geo}:${p.cs}` === k));
-for (const w of [390, 1440]) {
-  const c = await newCtx(w);
+// a sample, deeper: language round trip, 390/1440 layout, where the photo sits, real submissions
+const SAMPLE_KEYS = ["austin-tx:car-accident", "dallas-tx:truck-accident", "boise-id:motorcycle-accident", "plantation-fl:rideshare-accident",
+  "dallas-fort-worth-tx:rideshare-accident", "fargo-nd:truck-accident", "los-angeles-ca:car-accident", "downtown-dallas-tx:motorcycle-accident"];
+const SAMPLE = PAGES.filter(p => SAMPLE_KEYS.includes(`${p.geo}:${p.cs}`));
+const box = (pp, sel) => pp.evaluate(s => { const r = document.querySelector(s)?.getBoundingClientRect(); return r && { top: r.top, bottom: r.bottom, left: r.left, right: r.right }; }, sel);
+for (const [w, h] of [[390, 844], [1440, 900]]) {
+  const c = await newCtx(w, h);
   const pp = await c.newPage();
   for (const p of SAMPLE) for (const lang of ["en", "es"]) {
     await pp.goto(`${HOST}${p.file}?lang=${lang}`);
+    await photoLoaded(pp);
     const over = await pp.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(`${w}px EN/ES: no horizontal overflow (sample)`, `${p.file} ${lang}`, over <= 0, `${over}px`);
+    if (p.group !== "C" || lang !== "en") continue;
+    // the photo moves nothing above it: C's call button sits exactly where B's does
+    const cCall = await box(pp, ".hero .cta-call"), fig = await box(pp, ".hero-team"), card = await box(pp, ".hero-in > .card");
+    await pp.goto(`${HOST}${p.file.replace("-photo.html", ".html")}?lang=en`);
+    const bCall = await box(pp, ".hero .cta-call");
+    expect(`${w}px: C's call button sits exactly where B's does (sample)`, p.file, Math.abs(cCall.top - bCall.top) < 0.5, `${cCall.top} vs ${bCall.top}`);
+    if (w === 390) {
+      // phones: the faces (top 40% of the photo) are in the first screen, above the sticky call bar
+      const faces = fig.top + (fig.bottom - fig.top) * 0.4;
+      expect("390px: C shows the partners' faces in the first screen (sample)", p.file, fig.top > cCall.bottom && faces < h - 80, `photo ${fig.top}-${fig.bottom}`);
+    } else {
+      // desktop: standing in the form column, next to the H1, the card overlapping the photo's base
+      expect("1440px: C's photo stands behind the form, beside the headline (sample)", p.file,
+        Math.abs(fig.left - card.left) < 2 && Math.abs(fig.right - card.right) < 2 && fig.top < 140 && card.top > fig.top && card.top < fig.bottom,
+        `photo ${JSON.stringify(fig)} card ${JSON.stringify(card)}`);
+    }
   }
   await c.close();
 }
@@ -240,10 +301,11 @@ for (const p of SAMPLE) {
   await fp.click("#lang-toggle");
   await fp.click("#lang-toggle");
   const after = await snapshot(fp);
-  expect("toggle ES and back restores the outline (sample)", p.file, JSON.stringify(after.outline) === JSON.stringify(before.outline));
+  expect("toggle ES and back restores the outline and name tags (sample)", p.file,
+    JSON.stringify([after.outline, after.tp]) === JSON.stringify([before.outline, before.tp]));
   await fp.evaluate(() => localStorage.removeItem("gl-lang"));
 
-  // the form converts and tags the lead
+  // the form converts and tags the lead with its group
   await fp.goto(`${HOST}${p.file}?lang=en`);
   const n = posts.length;
   await fp.click('.opt[data-k="when"]');
@@ -253,16 +315,17 @@ for (const p of SAMPLE) {
   await fp.check("#f-consent");
   await fp.click("button.submit");
   await fp.waitForURL(/thank-you\.html/, { timeout: 6000 }).catch(() => {});
-  const tag = `${short(p.geo)}-headings`;
   const q = fp.url().split("?")[1] || "";
-  expect("submission redirects with geo, ct and variant (sample)", p.file,
-    fp.url().includes("/thank-you.html") && q.includes(`geo=${p.geo}`) && q.includes(`ct=${p.cs}`) && q.includes(`variant=${tag}`), q);
+  const params = new URLSearchParams(q);
+  expect("submission redirects with geo, ct and the group's variant (sample)", p.file,
+    fp.url().includes("/thank-you.html") && params.get("geo") === p.geo && params.get("ct") === p.cs && params.get("variant") === p.tag, q);
   const lead = posts.length === n + 1 ? posts[posts.length - 1] : {};
-  expect("lead payload carries variant and case type (sample)", p.file,
-    lead.variant === tag && lead.case_type === p.cs && lead.phone === "5125550142" && lead._subject === "GoldbergandlorenPPC", JSON.stringify(lead).slice(0, 160));
+  expect("lead payload carries the group's variant and the case type (sample)", p.file,
+    lead.variant === p.tag && lead.case_type === p.cs && lead.phone === "5125550142" && lead._subject === "GoldbergandlorenPPC", JSON.stringify(lead).slice(0, 160));
 }
 // junk numbers are still refused
-await fp.goto(`${HOST}${SAMPLE[1].file}?lang=en`);
+const junk = SAMPLE.find(p => p.group === "C");
+await fp.goto(`${HOST}${junk.file}?lang=en`);
 const n0 = posts.length;
 await fp.click('.opt[data-k="when"]');
 await fp.click('.opt[data-k="injured"]');
@@ -271,7 +334,7 @@ await fp.fill("#f-phone", "0000001");
 await fp.check("#f-consent");
 await fp.click("button.submit");
 await fp.waitForTimeout(600);
-expect("0000001 rejected, nothing sent", SAMPLE[1].file, posts.length === n0 && await fp.isVisible("#f-err"));
+expect("0000001 rejected, nothing sent", junk.file, posts.length === n0 && await fp.isVisible("#f-err"));
 await fc.close();
 
 await browser.close();
@@ -285,6 +348,6 @@ for (const [label, r] of results) {
   for (const b of r.bad.slice(0, 6)) console.log(`     ${b}`);
   if (r.bad.length > 6) console.log(`     …and ${r.bad.length - 6} more`);
 }
-console.log(`\n${PAGES.length} pages, EN + ES, in ${secs}s`);
+console.log(`\n${PAGES.length} pages (groups B and C), EN + ES, in ${secs}s`);
 console.log(failures ? `${failures} FAILING CHECK(S)` : "ALL PASS");
 process.exit(failures ? 1 : 0);
