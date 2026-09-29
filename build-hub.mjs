@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /* Regenerates index.html (internal review hub) from the masters' geo data.
    Run after adding markets: node build-hub.mjs */
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { outFile as tagFile, CASE_TYPES as TAG_CASES } from "./generate-tag-landers.mjs";
 
 const CASES = [
   ["car-accident", "Car Accidents"],
@@ -16,10 +17,6 @@ const SUPPORT = [
   ["case-review", "Free Case Review 24/7"],
   ["maximize-settlement", "Maximize Your Settlement"],
   ["our-team", "Meet Your Team"],
-];
-// the client's heading-tag test pages get a section of their own
-const NEW_TAGS = [
-  ["austin-car-accident-attorneys.html", "Austin Car Accident Attorneys (test vs car-accident-austin-tx)"],
 ];
 const KW_TESTS = [
   ["car-accident-dallas-tx-kw.html?kw=car+accident+attorney+near+me", "Dallas Car — Keyword Headline"],
@@ -41,6 +38,21 @@ const missing = slugs.filter(s => !listed.has(s));
 if (missing.length) REGIONS.push(["Other", missing]);
 
 const total = slugs.length * CASES.length + CASES.length;
+
+// the client's heading-outline test pages (generate-tag-landers.mjs) get a section of their own
+let tagCount = 0;
+const tagMissing = [];
+let tagBody = "";
+for (const [caseSlug, caseName] of CASES.filter(([c]) => TAG_CASES.includes(c))) {
+  const links = REGIONS.flatMap(([, list]) => list.filter(s => geos[s])).map(s => {
+    const f = tagFile(s, caseSlug);
+    if (!existsSync(f)) { tagMissing.push(f); return ""; }
+    tagCount++;
+    return `<a href="${f}">${geos[s].city}</a>`;
+  }).join("");
+  tagBody += `<div class="reg"><h3>${caseName}</h3><div class="links">${links}</div></div>\n`;
+}
+if (tagMissing.length) console.warn(`NEW TAGs landers not built yet (run node generate-tag-landers.mjs): ${tagMissing.join(", ")}`);
 let body = "";
 for (const [caseSlug, caseName] of CASES) {
   body += `<section>\n<h2>${caseName}</h2>\n<a class="master" href="${caseSlug}.html">National (default)</a>\n`;
@@ -80,14 +92,14 @@ code{background:#eef3f2;border-radius:3px;padding:1px 5px;font-size:.72rem}
 <body><div class="wrap">
 <p class="kick">Retainer Reach · Internal Review</p>
 <h1>Goldberg &amp; Loren — Landers</h1>
-<p class="note">${total} pages · ${slugs.length} markets · every page has an EN/ES switch (header toggle or the "Se Habla Español" chip) · add <code>?lang=es</code> to any URL to land in Spanish · national pages accept <code>?geo=frisco-tx</code> etc. · forms redirect to <code>/thank-you.html</code></p>
+<p class="note">${total} landers + ${tagCount} NEW TAGs landers · ${slugs.length} markets · every page has an EN/ES switch (header toggle or the "Se Habla Español" chip) · add <code>?lang=es</code> to any URL to land in Spanish · national pages accept <code>?geo=frisco-tx</code> etc. · forms redirect to <code>/thank-you.html</code></p>
 ${body}<section><h2>Shared Pages &mdash; Sitelink Destinations</h2><div class="links">${SUPPORT.map(([f, label]) => `<a href="${f}.html?geo=dallas-tx&ct=car-accident">${label}</a>`).join("")}</div>
 <p class="tip">One page serves every market: <code>?geo=</code> swaps the phone number and GTM container, <code>?ct=</code> points the return CTA at the matching lander, <code>?lang=es</code> lands in Spanish.</p></section>
-<section><h2>NEW TAGs Landers</h2><div class="links">${NEW_TAGS.map(([f, label]) => `<a href="${f}">${label}</a>`).join("")}</div>
-<p class="tip">Built to the client's H1/H2/H3 outline and split-tested against the live lander. Leads carry <code>variant: austin-headings</code>; setup in <code>AUSTIN-HEADINGS-TEST.md</code>.</p></section>
+<section><h2>NEW TAGs Landers</h2>
+${tagBody}<p class="tip">Built to the client's H1/H2/H3 outline — <code>{City} {Case} Attorneys</code> — each split-tested against the live lander for the same city and case type (Dallas Truck vs <code>truck-accident-dallas-tx</code>). Leads carry <code>variant: {city}-headings</code> (<code>austin-headings</code>, <code>dallas-headings</code>…) alongside <code>case_type</code>. Setup and reading results: <code>NEW-TAGS-LANDERS.md</code>; every control → variant pair: <code>CAMPAIGN-URLS-NEW-TAGS.md</code>.</p></section>
 <section><h2>Keyword Test Landers</h2><div class="links">${KW_TESTS.map(([f, label]) => `<a href="${f}">${label}</a>`).join("")}</div></section>
 <section><h2>Shared Pages &mdash; Utility</h2><div class="links"><a href="thank-you.html?geo=austin-tx&ct=car-accident">Thank You (post-submit)</a><a href="privacy-policy.html">Privacy Policy</a><a href="terms.html">Terms of Use</a><a href="404.html">404 Page</a></div></section>
 <p class="tip">This hub is for review only — never send ad traffic here. Campaign final URLs go directly to a city page.</p>
 </div></body></html>
 `);
-console.log(`hub rebuilt — ${slugs.length} markets, ${total} pages`);
+console.log(`hub rebuilt — ${slugs.length} markets, ${total} landers, ${tagCount} NEW TAGs landers`);

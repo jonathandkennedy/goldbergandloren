@@ -71,14 +71,15 @@ already wired and battle-tested:
 | `thank-you.html` | Post-submit page; fires `lead_form_submit` + loads the per-market GTM (reads `?geo=&ct=`). |
 | `404.html` | Branded not-found with call CTA; `call_click` tagged `geo:"404"`. |
 | `CAMPAIGN-URLS-*.md` | Final-URL reference handed to whoever builds the ad campaigns. |
-| `generate-austin-test.mjs` | Pattern for a **client-specified heading outline** test: builds a variant from a baked lander, rebuilds the body around the given H1/H2/H3 list, fails the build if the outline drifts, and re-targets the positional Spanish ops by ID. Copy it for any market. |
-| `tests/form-e2e.mjs`, `tests/kw-e2e.mjs`, `tests/support-e2e.mjs`, `tests/austin-test-e2e.mjs` | Playwright suites (Formspree mocked — no real leads sent). Run before every deploy. |
+| `generate-tag-landers.mjs` | **Client-specified heading outline** test, for every market × case type: builds a variant from each baked lander, rebuilds the body around the given H1/H2/H3 template, fails the build if any outline drifts, and re-targets the positional Spanish ops by ID. Per-state law (`STATES`) and per-market roads/county (`MARKETS`) are tables — replace them for a new client's markets. Also writes the control → variant URL list. |
+| `tests/form-e2e.mjs`, `tests/kw-e2e.mjs`, `tests/support-e2e.mjs`, `tests/austin-test-e2e.mjs`, `tests/tag-landers-e2e.mjs` | Playwright suites (Formspree mocked — no real leads sent). Run before every deploy. |
 | `HANDOFF.md` | The live client's operating doc — keep one per client, dated, honest. |
 
 ## 3. New-client build order (~half a day)
 
 1. **Copy this repo** to a fresh repo per client. Delete the baked `*-tx.html`
-   etc. city pages, `*-kw.html` pages, and the old client's `CAMPAIGN-URLS-*`;
+   etc. city pages, `*-kw.html` pages, `*-attorneys.html` heading-test pages, and
+   the old client's `CAMPAIGN-URLS-*`;
    keep masters, scripts, tests, thank-you, 404.
 2. **Global find/replace** across masters + thank-you + 404 for every §1 token:
    firm name, tagline, attorney, phone (both `tel:+1…` and display form),
