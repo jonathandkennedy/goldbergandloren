@@ -446,3 +446,57 @@ variant pair: `CAMPAIGN-URLS-NEW-TAGS.md`.**
   - state-law consistency, no other state or market named
   - sourced dollar figures only
   - real form submissions on a sample
+
+## Group C — the partners' photo (2026-09-29)
+Every NEW TAGs page now has a twin with the partners' photo:
+`{city}-{case}-attorneys-photo.html`, 88 more pages. **Group C is group B plus the
+photo, nothing else.** The test suite strips the photo out of each C page and checks
+that the rest is byte-for-byte the B page. So B vs C measures the photo alone.
+
+- **The photo:** the cutout of James M. Loren (left) and George Z. Goldberg (right),
+  arms crossed, with name tags (*Senior Partner* / *Founding Partner*; Spanish
+  *Socio Sénior* / *Socio Fundador*).
+  - Files: `img/partners-480/720/960.webp`, 17–35 KB.
+  - Fixed dimensions, so no layout shift; loaded with high priority.
+- **Placement:**
+  - Phones: right under the call buttons, so the faces are in the first screen and
+    the headline and buttons don't move.
+  - Desktop: in the form column beside the headline, standing behind the form card.
+- **Tagging:** `variant: "{city}-headings-photo"` on leads, the thank-you URL and the
+  `page_variant` event.
+- **Built by the same generator** (`node generate-tag-landers.mjs` → all 176 test
+  pages). The hub's NEW TAGs section lists Group B and Group C separately.
+  `CAMPAIGN-URLS-NEW-TAGS.md` has A / B / C columns.
+- **Running it:** Google Ads experiments are two-way, so run pairs. B vs C is the
+  clean read on the photo; details in `NEW-TAGS-LANDERS.md`.
+- **Found while testing, not fixed here:** in Spanish on screens 350px wide or
+  narrower, every lander's hero is clipped on the right. The trust-badge row
+  ("Evaluación Gratis"…) can't shrink below ~330px. This affects all groups,
+  including the live controls. Fixing it means re-baking every master, so it's
+  left for a separate change rather than skewing the running tests.
+
+## Two-step form (2026-09-29)
+The lead form is now **two steps instead of three**, on every lander:
+- **Step 1:** one tap on "Were you injured?" (Yes — I've seen a doctor / Yes — but not
+  treated yet / I'm not sure).
+- **Step 2:** name, mobile phone and consent.
+
+The "When did the accident happen?" step is gone.
+
+- **Every page changed together** — the national masters, all 88 city pages, the
+  keyword pages, and NEW TAGs groups B and C. Group A (the live controls) and the
+  test groups keep the same form, so the running comparisons stay fair. The NEW TAGs
+  suite checks that every B and C page carries its control's form byte-for-byte.
+- **Leads no longer carry `when`.** Formspree emails show name, phone, `injured`,
+  case type, market and page. Intake can ask when it happened on the call. If a
+  Zapier or CRM mapping reads `when`, it will now be blank.
+- Phone validation, the consent checkbox, the honeypot, response-aware submit,
+  the thank-you redirect and all tracking are unchanged. Spanish is fully
+  translated ("Paso 1 de 2").
+- Rebuilt with the usual pipeline, in order:
+  1. `node generate-geo.mjs <master>.html --all` for each master
+  2. `node generate-kw-test.mjs`
+  3. `node generate-tag-landers.mjs`
+  4. `node build-hub.mjs`
+
+  The diff was verified to contain only the form change.

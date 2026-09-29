@@ -15,7 +15,7 @@ JSON block inside each master. Every page is one self-contained HTML file — no
 framework, no build pipeline, nothing to break. On top of the layout you get,
 already wired and battle-tested:
 
-- 3-step qualifying form (2 tap-questions → name/phone) with **strict US phone
+- 2-step qualifying form (1 tap-question → name/phone) with **strict US phone
   validation** (NANP: no 0/1-leading area codes/exchanges, no repeated-digit
   junk, no N11; a typed +1 is normalized away)
 - **Response-aware submit**: lead POSTs to Formspree/webhook and the page
@@ -71,7 +71,7 @@ already wired and battle-tested:
 | `thank-you.html` | Post-submit page; fires `lead_form_submit` + loads the per-market GTM (reads `?geo=&ct=`). |
 | `404.html` | Branded not-found with call CTA; `call_click` tagged `geo:"404"`. |
 | `CAMPAIGN-URLS-*.md` | Final-URL reference handed to whoever builds the ad campaigns. |
-| `generate-tag-landers.mjs` | **Client-specified heading outline** test, for every market × case type: builds a variant from each baked lander, rebuilds the body around the given H1/H2/H3 template, fails the build if any outline drifts, and re-targets the positional Spanish ops by ID. Per-state law (`STATES`) and per-market roads/county (`MARKETS`) are tables — replace them for a new client's markets. Also writes the control → variant URL list. |
+| `generate-tag-landers.mjs` | **Client-specified heading outline** test, for every market × case type: builds a variant from each baked lander, rebuilds the body around the given H1/H2/H3 template, fails the build if any outline drifts, and re-targets the positional Spanish ops by ID. Per-state law (`STATES`) and per-market roads/county (`MARKETS`) are tables — replace them for a new client's markets. Also builds a photo twin of every page (group C: the same page plus the partners' photo — swap `img/partners-*.webp` and the name tags) and writes the A / B / C URL list. |
 | `tests/form-e2e.mjs`, `tests/kw-e2e.mjs`, `tests/support-e2e.mjs`, `tests/austin-test-e2e.mjs`, `tests/tag-landers-e2e.mjs` | Playwright suites (Formspree mocked — no real leads sent). Run before every deploy. |
 | `HANDOFF.md` | The live client's operating doc — keep one per client, dated, honest. |
 

@@ -87,7 +87,6 @@ await page.evaluate(() => localStorage.removeItem("gl-lang"));
 
 // 5. the form still converts, and tags the lead as the test variant
 await page.goto(PAGE);
-await page.click('.opt[data-k="when"]');
 await page.click('.opt[data-k="injured"]');
 await page.fill("#f-name", "Test Person");
 await page.fill("#f-phone", "(512) 960-3887");
@@ -103,7 +102,6 @@ check("lead payload core fields intact", p.phone === "5129603887" && p._subject 
 // 6. junk phone numbers are still refused on the variant
 await page.goto(PAGE);
 const before = posts.length;
-await page.click('.opt[data-k="when"]');
 await page.click('.opt[data-k="injured"]');
 await page.fill("#f-name", "Bot");
 await page.fill("#f-phone", "0000001");

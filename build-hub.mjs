@@ -2,7 +2,7 @@
 /* Regenerates index.html (internal review hub) from the masters' geo data.
    Run after adding markets: node build-hub.mjs */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { outFile as tagFile, CASE_TYPES as TAG_CASES } from "./generate-tag-landers.mjs";
+import { outFile as tagFile, photoFile as tagPhotoFile, CASE_TYPES as TAG_CASES } from "./generate-tag-landers.mjs";
 
 const CASES = [
   ["car-accident", "Car Accidents"],
@@ -39,18 +39,22 @@ if (missing.length) REGIONS.push(["Other", missing]);
 
 const total = slugs.length * CASES.length + CASES.length;
 
-// the client's heading-outline test pages (generate-tag-landers.mjs) get a section of their own
+// the client's heading-outline test pages (generate-tag-landers.mjs) get a section of their own:
+// group B (headings) and group C (headings + the partners' photo), by case type
 let tagCount = 0;
 const tagMissing = [];
 let tagBody = "";
-for (const [caseSlug, caseName] of CASES.filter(([c]) => TAG_CASES.includes(c))) {
-  const links = REGIONS.flatMap(([, list]) => list.filter(s => geos[s])).map(s => {
-    const f = tagFile(s, caseSlug);
-    if (!existsSync(f)) { tagMissing.push(f); return ""; }
-    tagCount++;
-    return `<a href="${f}">${geos[s].city}</a>`;
-  }).join("");
-  tagBody += `<div class="reg"><h3>${caseName}</h3><div class="links">${links}</div></div>\n`;
+for (const [group, fileFor] of [["Group B · Headings", tagFile], ["Group C · Headings + Partners' Photo", tagPhotoFile]]) {
+  tagBody += `<p class="grp">${group}</p>\n`;
+  for (const [caseSlug, caseName] of CASES.filter(([c]) => TAG_CASES.includes(c))) {
+    const links = REGIONS.flatMap(([, list]) => list.filter(s => geos[s])).map(s => {
+      const f = fileFor(s, caseSlug);
+      if (!existsSync(f)) { tagMissing.push(f); return ""; }
+      tagCount++;
+      return `<a href="${f}">${geos[s].city}</a>`;
+    }).join("");
+    tagBody += `<div class="reg"><h3>${caseName}</h3><div class="links">${links}</div></div>\n`;
+  }
 }
 if (tagMissing.length) console.warn(`NEW TAGs landers not built yet (run node generate-tag-landers.mjs): ${tagMissing.join(", ")}`);
 let body = "";
@@ -86,6 +90,8 @@ h3{font-size:.66rem;font-weight:800;letter-spacing:.14em;text-transform:uppercas
 .links a:hover,.master:hover{border-color:#0f766e;color:#0f766e}
 .master{background:#0f766e;border-color:#0f766e;color:#fff}
 .tip{font-size:.75rem;color:#5b6b7f;margin-top:16px;line-height:1.6}
+.grp{font-size:.8rem;font-weight:800;color:#0f766e;margin:18px 0 2px}
+.grp:first-of-type{margin-top:4px}
 code{background:#eef3f2;border-radius:3px;padding:1px 5px;font-size:.72rem}
 </style>
 </head>
@@ -96,7 +102,7 @@ code{background:#eef3f2;border-radius:3px;padding:1px 5px;font-size:.72rem}
 ${body}<section><h2>Shared Pages &mdash; Sitelink Destinations</h2><div class="links">${SUPPORT.map(([f, label]) => `<a href="${f}.html?geo=dallas-tx&ct=car-accident">${label}</a>`).join("")}</div>
 <p class="tip">One page serves every market: <code>?geo=</code> swaps the phone number and GTM container, <code>?ct=</code> points the return CTA at the matching lander, <code>?lang=es</code> lands in Spanish.</p></section>
 <section><h2>NEW TAGs Landers</h2>
-${tagBody}<p class="tip">Built to the client's H1/H2/H3 outline — <code>{City} {Case} Attorneys</code> — each split-tested against the live lander for the same city and case type (Dallas Truck vs <code>truck-accident-dallas-tx</code>). Leads carry <code>variant: {city}-headings</code> (<code>austin-headings</code>, <code>dallas-headings</code>…) alongside <code>case_type</code>. Setup and reading results: <code>NEW-TAGS-LANDERS.md</code>; every control → variant pair: <code>CAMPAIGN-URLS-NEW-TAGS.md</code>.</p></section>
+${tagBody}<p class="tip">Group B is built to the client's H1/H2/H3 outline — <code>{City} {Case} Attorneys</code> — and tested against the live lander for the same city and case type (A: Dallas Truck is <code>truck-accident-dallas-tx</code>). Group C is B plus the partners' photo and nothing else. Leads carry <code>variant: {city}-headings</code> (B) or <code>{city}-headings-photo</code> (C) alongside <code>case_type</code>. Setup and reading results: <code>NEW-TAGS-LANDERS.md</code>; every A / B / C URL: <code>CAMPAIGN-URLS-NEW-TAGS.md</code>.</p></section>
 <section><h2>Keyword Test Landers</h2><div class="links">${KW_TESTS.map(([f, label]) => `<a href="${f}">${label}</a>`).join("")}</div></section>
 <section><h2>Shared Pages &mdash; Utility</h2><div class="links"><a href="thank-you.html?geo=austin-tx&ct=car-accident">Thank You (post-submit)</a><a href="privacy-policy.html">Privacy Policy</a><a href="terms.html">Terms of Use</a><a href="404.html">404 Page</a></div></section>
 <p class="tip">This hub is for review only — never send ad traffic here. Campaign final URLs go directly to a city page.</p>
