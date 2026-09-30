@@ -253,6 +253,9 @@ Porting to a new client:
       thank-you AND appears in the form backend; failure path shows call CTA
 - [ ] `?gclid=test` swaps display + `tel:` on every metro's pages
 - [ ] `?lang=es` renders Spanish end-to-end incl. error messages
+- [ ] `?lang=es` at 320px: nothing in the hero is cut off. Spanish runs longer,
+      and `.hero{overflow:hidden}` hides clipping from `scrollWidth`, so the
+      suites check element edges instead
 - [ ] GTM preview shows `call_click` + `lead_form_submit` with case_type/geo
 - [ ] Clarity recording appears; NO consent banner visible
 - [ ] Bad URL shows branded 404 with working call button

@@ -422,8 +422,10 @@ variant pair: `CAMPAIGN-URLS-NEW-TAGS.md`.**
 - **One generator:** `node generate-tag-landers.mjs` builds all 88 and rewrites
   `CAMPAIGN-URLS-NEW-TAGS.md`. It replaces `generate-austin-test.mjs`, and the
   Austin car page it builds is byte-for-byte the one approved on 2026-09-22, so a
-  running Austin experiment is undisturbed. Re-run it, then `node build-hub.mjs`,
-  after re-baking any master.
+  running Austin experiment is undisturbed. *(It stayed that way until the
+  two-step form, 2026-09-29, and the Spanish fixes, 2026-09-30. Both reached
+  every group identically.)* Re-run it, then `node build-hub.mjs`, after
+  re-baking any master.
 - **Same outline everywhere:** `{City} {Case} Attorneys`, with five case-type
   H3s per case. The client wrote the car list; **the truck, motorcycle and
   rideshare H3s are ours** and worth his sign-off.
@@ -469,11 +471,11 @@ that the rest is byte-for-byte the B page. So B vs C measures the photo alone.
   `CAMPAIGN-URLS-NEW-TAGS.md` has A / B / C columns.
 - **Running it:** Google Ads experiments are two-way, so run pairs. B vs C is the
   clean read on the photo; details in `NEW-TAGS-LANDERS.md`.
-- **Found while testing, not fixed here:** in Spanish on screens 350px wide or
-  narrower, every lander's hero is clipped on the right. The trust-badge row
-  ("Evaluación Gratis"…) can't shrink below ~330px. This affects all groups,
-  including the live controls. Fixing it means re-baking every master, so it's
-  left for a separate change rather than skewing the running tests.
+- **Found while testing:** in Spanish on screens 350px wide or narrower, every
+  lander's hero was clipped on the right. The trust-badge row ("Evaluación
+  Gratis"…) can't shrink below ~330px. This affected all groups, including the
+  live controls. **Fixed 2026-09-30 in every group at once** — see "Spanish
+  fixes" below.
 
 ## Two-step form (2026-09-29)
 The lead form is now **two steps instead of three**, on every lander:
@@ -500,3 +502,30 @@ The "When did the accident happen?" step is gone.
   4. `node build-hub.mjs`
 
   The diff was verified to contain only the form change.
+
+## Spanish fixes — small-phone hero and tab title (2026-09-30)
+Two Spanish-only bugs on every lander, fixed in the four masters and re-baked
+once with the pipeline above. All 274 pages — the four national masters, 88
+city pages, 6 keyword pages and NEW TAGs groups B and C — get the same five
+lines, so the A / B / C tests stay even. `austin-car-accident-attorneys.html`
+changes again (after the two-step form), in Spanish only.
+
+- **Hero clipped at ≤350px.** The Spanish badges need 330px; a 320px screen
+  has 280px between the gutters. The hero's grid column grew to fit the badges,
+  and `.hero{overflow:hidden}` cut off the headline, buttons and badges.
+  - Now the column can shrink to the screen (`min-width:0` on the grid items).
+  - At ≤374px the badges tighten to fit: 20px icons, less padding, `.72rem` text.
+  - Both rules only match `html[lang="es"]`, so English renders as approved.
+- **Tab title used the English city name** ("…en Los Angeles |"). It now uses
+  the same Spanish phrase as the H1 (`h1city_es`): *en Los Ángeles*, *en el
+  centro de Dallas*. National pages keep the title without a city unless
+  `?geo=` names one.
+- **Tests:** `scrollWidth` can't see what `overflow:hidden` clips, so the suites
+  now also check that nothing inside `.hero-in` runs past the screen edge:
+  - `tag-landers-e2e`: every B and C page, its control, and the national
+    masters, at 320px in EN and ES, plus the 390/1440 sample
+  - `austin-test-e2e` at 320/390/1440, and `kw-e2e` on the six kw pages at 320px
+  - Spanish titles are checked on controls, B/C pages and the `?geo=` path.
+- **Left alone on purpose:** English at 320–335px runs 16px into the right
+  gutter (its badges need 296px against 280px). Nothing is clipped, and a fix
+  would change the approved English layout.

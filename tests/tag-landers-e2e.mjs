@@ -2,8 +2,9 @@
 //   B  {city}-{case}-attorneys.html        the client's heading outline
 //   C  {city}-{case}-attorneys-photo.html  B plus the partners' photo, nothing else
 // Each page is checked against its control ({case}-{geo}.html, group A) and against the
-// client's outline, independently of the generator's own tables. Formspree mocked,
-// third parties blocked.
+// client's outline, independently of the generator's own tables. The controls, and the
+// national masters they're baked from, get the hero-fit and Spanish-title checks too:
+// every group shares their hero and runtime. Formspree mocked, third parties blocked.
 import { chromium } from "playwright";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
@@ -136,6 +137,17 @@ const newCtx = async (width, height = 800) => {
   return ctx;
 };
 const photoLoaded = pg => pg.waitForFunction(() => { const i = document.querySelector(".hero-team img"); return !i || i.complete; }, null, { timeout: 5000 }).catch(() => {});
+// .hero{overflow:hidden} clips whatever runs past the screen, so scrollWidth never shows it:
+// check the hero's own boxes. Names the element reaching furthest past the right edge, "" if none.
+const heroClip = () => {
+  const vw = document.documentElement.clientWidth;
+  let worst = null, px = 0.5;
+  for (const e of document.querySelectorAll(".hero-in *")) {
+    const over = e.getBoundingClientRect().right - vw;
+    if (over > px) { worst = e; px = over; }
+  }
+  return worst ? `${worst.tagName.toLowerCase()}${worst.getAttribute("class") ? "." + worst.getAttribute("class").split(" ")[0] : ""} +${Math.round(px)}px` : "";
+};
 const snapshot = pg => pg.evaluate(() => {
   const clean = s => s.replace(/\s+/g, " ").trim();
   const body = document.body.cloneNode(true);
@@ -187,10 +199,22 @@ for (const p of PAGES) {
   const ctlTel = ctlHtml.match(/class="btn btn-teal cta-call js-tel" href="(tel:\+\d+)"/)[1];
   const ctlNum = ctlHtml.match(/<span class="js-tel-text">([^<]+)<\/span>/)[1];
 
+  // A, the live control, once per market × case type: every group shares its hero and runtime
+  if (group === "B") {
+    for (const lang of ["en", "es"]) {
+      await pg.goto(`${HOST}${control}?lang=${lang}`);
+      const clip = await pg.evaluate(heroClip);
+      expect(`A (control) 320px ${lang.toUpperCase()}: nothing in the hero runs past the screen edge`, control, !clip, clip);
+    }
+    const [ctlTitle, ctlBase] = await pg.evaluate(() => [document.title, JSON.parse(document.getElementById("i18n-es").textContent).title]);
+    expect("A (control): ES title gains the city, in Spanish", control, ctlTitle.startsWith(`${ctlBase.split(" | ")[0]}${g.h1city_es} |`), ctlTitle);
+  }
+
   // EN
   await pg.goto(HOST + file + "?lang=en");
   await photoLoaded(pg);
   const en = await snapshot(pg);
+  const enClip = await pg.evaluate(heroClip);
   const diff = en.outline.map((h, i) => JSON.stringify(h) === JSON.stringify(WANT[i]) ? null : `#${i + 1} ${JSON.stringify(h)}`).filter(Boolean);
   expect("EN outline is exactly the client's, generalised", file, en.outline.length === WANT.length && !diff.length,
     `${en.outline.length}/${WANT.length} ${diff.slice(0, 2).join(" ")}`);
@@ -240,14 +264,16 @@ for (const p of PAGES) {
   const strayCity = cities.filter(c => c !== city && !city.includes(c) && ahEnPlain.includes(c));
   expect("EN copy names no other market", file, !strayCity.length, strayCity.join(", "));
   expect("320px EN: no horizontal overflow", file, en.over <= 0, `${en.over}px`);
+  expect("320px EN: nothing in the hero runs past the screen edge", file, !enClip, enClip);
 
   // ES
   await pg.goto(HOST + file + "?lang=es");
   const es = await snapshot(pg);
+  const esClip = await pg.evaluate(heroClip);
   const esH1 = `Abogados de Accidentes de ${C.es}${g.h1city_es}`;
   expect("ES H1 reads naturally", file, es.outline[0]?.[1] === esH1, `${es.outline[0]?.[1]} vs ${esH1}`);
-  // the landers' shared runtime inserts the English city name ("en Los Angeles"), controls included
-  expect("ES title gains the city", file, es.title.startsWith(`Abogados de Accidentes de ${C.es} en ${city} |`), es.title);
+  // the same Spanish phrase as the H1: "en Los Ángeles", "en el centro de Dallas"
+  expect("ES title gains the city, in Spanish", file, es.title.startsWith(`Abogados de Accidentes de ${C.es}${g.h1city_es} |`), es.title);
   expect("ES keeps every heading at the same level", file, es.outline.length === WANT.length && es.outline.every(([t], i) => t === WANT[i][0]));
   const sameHead = es.outline.filter(([, x], i) => x === WANT[i]?.[1]).map(([, x]) => x);
   expect("every heading translates", file, !sameHead.length, sameHead.join(" | "));
@@ -262,6 +288,23 @@ for (const p of PAGES) {
   const strayEs = others.filter(l => ahEs.includes(l.es)).map(l => l.es);
   expect("ES copy names no other state", file, !strayEs.length, strayEs.join(", "));
   expect("320px ES: no horizontal overflow", file, es.over <= 0, `${es.over}px`);
+  expect("320px ES: nothing in the hero runs past the screen edge", file, !esClip, esClip);
+}
+
+// the national masters every lander is baked from: no city in the Spanish title unless ?geo= names one
+for (const cs of Object.keys(CASES)) {
+  const master = `${cs}.html`;
+  for (const lang of ["en", "es"]) {
+    await pg.goto(`${HOST}${master}?lang=${lang}`);
+    const clip = await pg.evaluate(heroClip);
+    expect(`national master 320px ${lang.toUpperCase()}: nothing in the hero runs past the screen edge`, master, !clip, clip);
+  }
+  const [title, base] = await pg.evaluate(() => [document.title, JSON.parse(document.getElementById("i18n-es").textContent).title]);
+  expect("national master: ES title carries no city", master, title === base, title);
+  await pg.goto(`${HOST}${master}?geo=downtown-dallas-tx&lang=es`);
+  const geoTitle = await pg.title();
+  expect("national master: ?geo= gives the ES title the city, in Spanish", master,
+    geoTitle.startsWith(`${base.split(" | ")[0]}${GEOS["downtown-dallas-tx"].h1city_es} |`), geoTitle);
 }
 const secs = ((Date.now() - t0) / 1000).toFixed(0);
 await ctx.close();
@@ -279,6 +322,8 @@ for (const [w, h] of [[390, 844], [1440, 900]]) {
     await photoLoaded(pp);
     const over = await pp.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(`${w}px EN/ES: no horizontal overflow (sample)`, `${p.file} ${lang}`, over <= 0, `${over}px`);
+    const clip = await pp.evaluate(heroClip);
+    expect(`${w}px EN/ES: nothing in the hero runs past the screen edge (sample)`, `${p.file} ${lang}`, !clip, clip);
     if (p.group !== "C" || lang !== "en") continue;
     // the photo moves nothing above it: C's call button sits exactly where B's does
     const cCall = await box(pp, ".hero .cta-call"), fig = await box(pp, ".hero-team"), card = await box(pp, ".hero-in > .card");
@@ -352,6 +397,6 @@ for (const [label, r] of results) {
   for (const b of r.bad.slice(0, 6)) console.log(`     ${b}`);
   if (r.bad.length > 6) console.log(`     …and ${r.bad.length - 6} more`);
 }
-console.log(`\n${PAGES.length} pages (groups B and C), EN + ES, in ${secs}s`);
+console.log(`\n${PAGES.length} pages (groups B and C) + their ${PAGES.length / 2} controls + ${Object.keys(CASES).length} national masters, EN + ES, in ${secs}s`);
 console.log(failures ? `${failures} FAILING CHECK(S)` : "ALL PASS");
 process.exit(failures ? 1 : 0);
