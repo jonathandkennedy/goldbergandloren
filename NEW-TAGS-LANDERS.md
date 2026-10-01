@@ -175,12 +175,15 @@ photo files are `img/partners-480.webp`, `-720` and `-960`.
 
 A new market needs one `MARKETS` row in the generator: its state, three busy
 roads (EN/ES) and its county (EN/ES). The build refuses to run until the row is
-there. The Austin car page it produces is byte-for-byte the page approved on
-2026-09-22.
+there. The Austin car page it produces is the page approved on 2026-09-22 plus
+two changes that reached every group identically: the two-step form (2026-09-29)
+and the Spanish fixes (2026-09-30: small-phone hero, tab title).
 
 Tests:
 - `tests/tag-landers-e2e.mjs` checks all 176 pages, EN and ES, against their controls:
   - that C is exactly B plus the photo
   - that on phones the faces show in the first screen without moving the call button
   - where the photo sits on desktop
+  - that nothing in the hero runs past a 320px screen, on every page and its control
+  - that Spanish tab titles name the city the way the H1 does
 - `tests/austin-test-e2e.mjs` checks the Austin page against the client's verbatim outline.

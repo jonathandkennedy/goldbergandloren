@@ -93,6 +93,10 @@ h1 .h1-city{font-style:italic;color:var(--btn)}
 .benefit-lang{cursor:pointer}
 .benefit-lang:hover .b-txt{color:var(--btn)}
 .benefit-lang:focus-visible{outline:3px solid var(--navy);outline-offset:2px;border-radius:6px}
+/* Spanish badges need 330px, English 296px: let the hero column shrink to the screen, and tighten
+   the badges on small phones so they fit it. Spanish only, so English renders exactly as approved */
+html[lang="es"] .hero-in > *{min-width:0}
+@media(max-width:374px){html[lang="es"] .benefit{gap:5px;padding-right:6px}html[lang="es"] .benefit+.benefit{padding-left:6px}html[lang="es"] .benefit svg{width:20px;height:20px}html[lang="es"] .b-txt{font-size:.72rem}}
 .stats{margin-top:0;display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;max-width:600px;box-shadow:0 4px 14px rgba(21,59,102,.06)}
 @media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr)}}
 .stat{background:#fff;padding:15px 10px;text-align:center}
@@ -665,7 +669,7 @@ width="0" height="0" style="display:none"></iframe></noscript>
   function setLang(l){ if (!EN_SNAP) i18nSnap(); var es = l === "es";
     i18nApply(es); i18nGeo(es);
     document.documentElement.lang = es ? "es" : "en";
-    document.title = es ? (g.city ? I18N.title.replace(" | ", " en " + g.city + " | ") : I18N.title) : DEFAULT_TITLE;
+    document.title = es ? (g.city ? I18N.title.replace(" | ", (g.h1city_es || " en " + g.city) + " | ") : I18N.title) : DEFAULT_TITLE;
     var tb = document.getElementById("lang-toggle"); if (tb) tb.textContent = es ? "EN" : "ES";
     var ch = document.querySelector(".benefit-lang .b-txt"); if (ch) ch.textContent = es ? "English" : "Se Habla Español";
     LANG = l; stepLabel(); try { localStorage.setItem("gl-lang", l); } catch(e){}

@@ -89,6 +89,30 @@ check("kw_variant pushed to dataLayer", dl.length === 1 && dl[0].kw === "motorcy
 const baked = await (await fetch("http://localhost:8933/car-accident-dallas-tx.html")).text();
 check("production dallas page has no kw script or variant tag", !baked.includes("kw-test") && !baked.includes("__kw"));
 
+// 11. smallest phone, both languages: nothing in the hero runs past the screen edge.
+// .hero{overflow:hidden} clips it, so scrollWidth never shows it: check the hero's own boxes.
+// Non-mobile context on purpose: mobile emulation widens the layout viewport and hides overflow.
+const heroClip = () => {
+  const vw = document.documentElement.clientWidth;
+  let worst = null, px = 0.5;
+  for (const e of document.querySelectorAll(".hero-in *")) {
+    const over = e.getBoundingClientRect().right - vw;
+    if (over > px) { worst = e; px = over; }
+  }
+  return worst ? `${worst.tagName.toLowerCase()}${worst.getAttribute("class") ? "." + worst.getAttribute("class").split(" ")[0] : ""} +${Math.round(px)}px` : "";
+};
+const small = await browser.newContext({ viewport: { width: 320, height: 800 } });
+await small.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com|formspree/, r => r.abort());
+const sp = await small.newPage();
+for (const ct of ["car-accident", "truck-accident", "motorcycle-accident"]) for (const geo of ["dallas-tx", "fort-worth-tx"]) {
+  for (const lang of ["en", "es"]) {
+    await sp.goto(`http://localhost:8933/${ct}-${geo}-kw.html?lang=${lang}`);
+    const clip = await sp.evaluate(heroClip);
+    check(`${ct}-${geo}-kw 320px ${lang.toUpperCase()}: nothing in the hero runs past the screen edge${clip ? ` (${clip})` : ""}`, !clip);
+  }
+}
+await small.close();
+
 await browser.close();
 server.close();
 console.log(failures ? `\n${failures} FAILURE(S)` : "\nALL PASS");

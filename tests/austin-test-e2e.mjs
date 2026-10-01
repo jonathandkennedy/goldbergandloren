@@ -132,7 +132,18 @@ const unsourced = figs.filter(f => !SOURCED.has(f));
 check(`only sourced dollar figures (${unsourced.length ? "UNSOURCED " + unsourced.join(", ") : figs.length + " found"})`, !unsourced.length);
 check("unconfirmed $8.7M trucking figure is not on the variant", !text.includes("8,700,000"));
 
-// 10. layout: no overflow at 320 / 390 / 1440 in either language (non-mobile context on purpose)
+// 10. layout: no overflow at 320 / 390 / 1440 in either language (non-mobile context on purpose).
+// .hero{overflow:hidden} clips whatever runs past the screen, so scrollWidth never shows it:
+// also check the hero's own boxes, naming the element reaching furthest past the right edge
+const heroClip = () => {
+  const vw = document.documentElement.clientWidth;
+  let worst = null, px = 0.5;
+  for (const e of document.querySelectorAll(".hero-in *")) {
+    const over = e.getBoundingClientRect().right - vw;
+    if (over > px) { worst = e; px = over; }
+  }
+  return worst ? `${worst.tagName.toLowerCase()}${worst.getAttribute("class") ? "." + worst.getAttribute("class").split(" ")[0] : ""} +${Math.round(px)}px` : "";
+};
 for (const w of [320, 390, 1440]) for (const lang of ["en", "es"]) {
   const ctx = await browser.newContext({ viewport: { width: w, height: 800 } });
   const pg = await ctx.newPage();
@@ -140,6 +151,8 @@ for (const w of [320, 390, 1440]) for (const lang of ["en", "es"]) {
   await pg.goto(PAGE + "?lang=" + lang);
   const over = await pg.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(`${w}px ${lang.toUpperCase()}: no horizontal overflow (${over}px)`, over <= 0);
+  const clip = await pg.evaluate(heroClip);
+  check(`${w}px ${lang.toUpperCase()}: nothing in the hero runs past the screen edge${clip ? ` (${clip})` : ""}`, !clip);
   await ctx.close();
 }
 
