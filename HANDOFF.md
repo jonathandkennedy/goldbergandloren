@@ -529,3 +529,21 @@ changes again (after the two-step form), in Spanish only.
 - **Left alone on purpose:** English at 320–335px runs 16px into the right
   gutter (its badges need 296px against 280px). Nothing is clipped, and a fix
   would change the approved English layout.
+
+## "Ask Us About Our Rental Car" heading on every lander (2026-10-09)
+An H2, **Ask Us About Our Rental Car** (Spanish: *Pregúntenos Sobre Nuestro Auto
+de Renta*), in the hero right under the call buttons, with a small car icon. Added
+to the four masters and re-baked once with the pipeline above, so all 274 pages
+— national masters, 88 city pages, 6 keyword pages and NEW TAGs groups B and C —
+get the same five lines and every test group changes the same way.
+`austin-car-accident-attorneys.html` changes for the third time since its
+approval (after the two-step form and the Spanish fixes), equally across groups.
+
+- **NEW TAGs outline:** the heading comes from the shared hero, so it is the
+  second heading on every B and C page, between the H1 and "Types of Cases…".
+  The generator's outline check and the test suites expect it there.
+- **Group C on phones:** the partners' photo now sits under the heading instead
+  of directly under the buttons; the faces are still in the first screen.
+- **Tests:** `tag-landers-e2e` checks the heading on every B/C page, its control
+  and the national masters (EN + ES, under the call buttons); `kw-e2e` on the six
+  keyword pages; `austin-test-e2e` has it in the expected outline.

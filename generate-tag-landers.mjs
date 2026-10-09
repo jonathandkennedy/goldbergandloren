@@ -10,6 +10,7 @@
  * for Austin, generalised:
  *
  *   H1  {City} {Case} Attorneys
+ *   H2  Ask Us About Our Rental Car                                 (in the hero, kept from the control)
  *   H2  Types of Cases Our {City} {Case} Attorneys Represent        (5 × H3, per case type)
  *   H2  {Case} Attorneys in {City}, {ST} Open 24 Hours
  *   H2  Why Turn to a {Case} Attorney in {City} After a Crash        (5 × H3)
@@ -339,6 +340,7 @@ function build(geo, cs, photo = false) {
   const office = officeSentence(g, m);
   const OUTLINE = [
     ["h1", `${city} ${L} Attorneys`],
+    ["h2", "Ask Us About Our Rental Car"], // the hero's, kept from the control like the rest of the hero
     ["h2", `Types of Cases Our ${city} ${L} Attorneys Represent`],
     ...TYPES.map(t => ["h3", t[0]]),
     ["h2", `${L} Attorneys in ${city}, ${st} Open 24 Hours`],
