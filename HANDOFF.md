@@ -547,3 +547,9 @@ approval (after the two-step form and the Spanish fixes), equally across groups.
 - **Tests:** `tag-landers-e2e` checks the heading on every B/C page, its control
   and the national masters (EN + ES, under the call buttons); `kw-e2e` on the six
   keyword pages; `austin-test-e2e` has it in the expected outline.
+
+## Google Search Console verification file (2026-10-09)
+`google7f4eb01d83939e39.html` at the site root is Google's HTML-file ownership
+check for Search Console. It must stay at `https://results.goldbergloren.com/google7f4eb01d83939e39.html`
+with its one line unchanged. If it is deleted, Search Console un-verifies the
+site. It isn't a page: don't add it to the sitemap or the hub.
