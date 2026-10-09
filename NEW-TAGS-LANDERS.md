@@ -15,8 +15,9 @@ and case type.
 Every A / B / C URL is listed in **`CAMPAIGN-URLS-NEW-TAGS.md`**.
 
 **What differs from A to B:** the headline and everything below the hero. **What
-doesn't:** design, hero copy, the 2-step form, phone number,
-GTM/CallRail/Clarity/ClickCease, footer. Above the fold, the only change is the H1.
+doesn't:** design, hero copy (the "Ask Us About Our Rental Car" heading included), the
+2-step form, phone number, GTM/CallRail/Clarity/ClickCease, footer. Above the fold, the
+only change is the H1.
 
 **From B to C, the only difference is the photo** (below). The test suite strips the
 photo out of every C page and checks that what's left is byte-for-byte the B page.
@@ -26,6 +27,7 @@ That keeps each comparison honest: whichever group wins, you know what won it.
 
 ```
 H1  {City} {Case} Attorneys
+H2  Ask Us About Our Rental Car                  (in the hero; every group has it)
 H2  Types of Cases Our {City} {Case} Attorneys Represent
     H3 × 5 — by case type (below)
 H2  {Case} Attorneys in {City}, {ST} Open 24 Hours
@@ -57,6 +59,10 @@ The five "types of cases" H3s:
 ours**, following his pattern with the most common crash types for each. They are
 worth his sign-off before those tests start.
 
+The rental-car H2 is not part of the client's outline. It was added on 2026-10-09 to
+every lander, controls included, under the call buttons, so it is the same in all three
+groups and doesn't skew the test.
+
 These are the **only** headings on each page. The form title ("What's Your Case
 Worth?"), the form's success message and the footer column titles were headings
 on the control; on the variants they look identical but are styled paragraphs, so
@@ -72,8 +78,8 @@ Two wording fixes from the brief: "schedule a free consultations" → singular, 
 The cutout of **James M. Loren** (left) and **George Z. Goldberg** (right), arms
 crossed — the same shot as the Our Team page, with the background removed.
 
-- **Phones:** right under the two call buttons, so the faces are in the first
-  screen. The headline and both buttons stay exactly where they are on B; the
+- **Phones:** right under the call buttons and the rental-car heading, so the faces
+  are in the first screen. The headline and both buttons stay exactly where they are on B; the
   photo fades out at the waist. Everything below moves down about 250px.
 - **Desktop:** in the form column beside the headline, the partners standing
   behind the "What's Your Case Worth?" card, which overlaps the base of the photo.
@@ -176,8 +182,9 @@ photo files are `img/partners-480.webp`, `-720` and `-960`.
 A new market needs one `MARKETS` row in the generator: its state, three busy
 roads (EN/ES) and its county (EN/ES). The build refuses to run until the row is
 there. The Austin car page it produces is the page approved on 2026-09-22 plus
-two changes that reached every group identically: the two-step form (2026-09-29)
-and the Spanish fixes (2026-09-30: small-phone hero, tab title).
+three changes that reached every group identically: the two-step form (2026-09-29),
+the Spanish fixes (2026-09-30: small-phone hero, tab title) and the "Ask Us About Our
+Rental Car" heading (2026-10-09).
 
 Tests:
 - `tests/tag-landers-e2e.mjs` checks all 176 pages, EN and ES, against their controls:
@@ -186,4 +193,6 @@ Tests:
   - where the photo sits on desktop
   - that nothing in the hero runs past a 320px screen, on every page and its control
   - that Spanish tab titles name the city the way the H1 does
+  - that every page, its control and the national masters carry the rental-car H2
+    under the call buttons, in English and in Spanish
 - `tests/austin-test-e2e.mjs` checks the Austin page against the client's verbatim outline.

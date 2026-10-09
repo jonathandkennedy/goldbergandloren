@@ -89,7 +89,8 @@ check("kw_variant pushed to dataLayer", dl.length === 1 && dl[0].kw === "motorcy
 const baked = await (await fetch("http://localhost:8933/car-accident-dallas-tx.html")).text();
 check("production dallas page has no kw script or variant tag", !baked.includes("kw-test") && !baked.includes("__kw"));
 
-// 11. smallest phone, both languages: nothing in the hero runs past the screen edge.
+// 11. smallest phone, both languages: nothing in the hero runs past the screen edge, and the
+// rental-car H2 sits under the call buttons in the right language.
 // .hero{overflow:hidden} clips it, so scrollWidth never shows it: check the hero's own boxes.
 // Non-mobile context on purpose: mobile emulation widens the layout viewport and hides overflow.
 const heroClip = () => {
@@ -109,6 +110,10 @@ for (const ct of ["car-accident", "truck-accident", "motorcycle-accident"]) for 
     await sp.goto(`http://localhost:8933/${ct}-${geo}-kw.html?lang=${lang}`);
     const clip = await sp.evaluate(heroClip);
     check(`${ct}-${geo}-kw 320px ${lang.toUpperCase()}: nothing in the hero runs past the screen edge${clip ? ` (${clip})` : ""}`, !clip);
+    // the rental-car H2 every lander carries, right under the call buttons
+    const rental = await sp.evaluate(() => { const h = document.querySelectorAll(".hero-ctas + h2.hero-rental"); return h.length === 1 ? h[0].textContent.trim() : `${h.length} found`; });
+    const want = lang === "es" ? "Pregúntenos Sobre Nuestro Auto de Renta" : "Ask Us About Our Rental Car";
+    check(`${ct}-${geo}-kw ${lang.toUpperCase()}: rental-car H2 under the call buttons ("${rental}")`, rental === want);
   }
 }
 await small.close();

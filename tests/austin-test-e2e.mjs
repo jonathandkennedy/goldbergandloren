@@ -35,6 +35,7 @@ const outline = () => page.$$eval("h1,h2,h3,h4,h5,h6", n => n.map(e => [e.tagNam
 // 1. the client's outline, exactly — every heading in the DOM, hidden ones included
 const WANT = [
   ["h1", "Austin Car Accident Attorneys"],
+  ["h2", "Ask Us About Our Rental Car"],
   ["h2", "Types of Cases Our Austin Car Accident Attorneys Represent"],
   ["h3", "Red Light Accidents"], ["h3", "Car Crashes Involving Drunk Drivers"], ["h3", "Rear-End Accidents"],
   ["h3", "Rideshare Accidents"], ["h3", "Chain Reaction Auto Accidents"],
@@ -70,9 +71,10 @@ check(`all Spanish ops resolve (${orphans.length ? "ORPHANS: " + orphans.join(",
 await page.click("#lang-toggle");
 const es = await outline();
 check(`ES H1 ("${es[0][1]}")`, es[0][1] === "Abogados de Accidentes de Auto en Austin");
+check(`ES rental-car H2 ("${es[1][1]}")`, es[1][1] === "Pregúntenos Sobre Nuestro Auto de Renta");
 const untranslated = es.filter(([, x], i) => x === WANT[i][1]).map(([, x]) => x);
-check(`every heading changes in Spanish (${untranslated.length ? "SAME: " + untranslated.join(" | ") : "all 15"})`, untranslated.length === 0);
-check(`ES keeps 15 headings in the same levels`, es.length === 15 && es.every(([t], i) => t === WANT[i][0]));
+check(`every heading changes in Spanish (${untranslated.length ? "SAME: " + untranslated.join(" | ") : "all 16"})`, untranslated.length === 0);
+check(`ES keeps 16 headings in the same levels`, es.length === 16 && es.every(([t], i) => t === WANT[i][0]));
 const esNums = await page.$$eval(".js-tel-text", n => [...new Set(n.map(e => e.textContent))]);
 const esTels = await page.$$eval("a.js-tel", n => [...new Set(n.map(a => a.getAttribute("href")))]);
 check(`ES keeps the Austin number everywhere (${esNums} / ${esTels})`, esNums.length === 1 && esNums[0] === "(512) 960-3887" && esTels.length === 1);

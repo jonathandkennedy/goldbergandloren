@@ -3,8 +3,8 @@
 //   C  {city}-{case}-attorneys-photo.html  B plus the partners' photo, nothing else
 // Each page is checked against its control ({case}-{geo}.html, group A) and against the
 // client's outline, independently of the generator's own tables. The controls, and the
-// national masters they're baked from, get the hero-fit and Spanish-title checks too:
-// every group shares their hero and runtime. Formspree mocked, third parties blocked.
+// national masters they're baked from, get the hero-fit, rental-car heading and Spanish-title
+// checks too: every group shares their hero and runtime. Formspree mocked, third parties blocked.
 import { chromium } from "playwright";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
@@ -148,6 +148,17 @@ const heroClip = () => {
   }
   return worst ? `${worst.tagName.toLowerCase()}${worst.getAttribute("class") ? "." + worst.getAttribute("class").split(" ")[0] : ""} +${Math.round(px)}px` : "";
 };
+// the rental-car H2 every lander carries in its hero, under the call buttons: its text, or what's wrong
+const RENTAL = { en: "Ask Us About Our Rental Car", es: "Pregúntenos Sobre Nuestro Auto de Renta" };
+const rentalH2 = () => {
+  const all = document.querySelectorAll("h2.hero-rental"), h = all[0];
+  if (all.length !== 1) return `${all.length} found`;
+  if (!h.closest(".hero-top")) return "not in the hero";
+  const r = h.getBoundingClientRect();
+  if (!r.height) return "hidden";
+  if (r.top < document.querySelector(".hero-ctas").getBoundingClientRect().bottom) return "above the call buttons";
+  return h.textContent.trim();
+};
 const snapshot = pg => pg.evaluate(() => {
   const clean = s => s.replace(/\s+/g, " ").trim();
   const body = document.body.cloneNode(true);
@@ -187,6 +198,7 @@ for (const p of PAGES) {
   const C = CASES[cs], g = GEOS[geo], st = geo.slice(-2), law = LAW[st], city = g.city;
   const WANT = [
     ["h1", `${city} ${C.label} Attorneys`],
+    ["h2", RENTAL.en],
     ["h2", `Types of Cases Our ${city} ${C.label} Attorneys Represent`],
     ...C.h3.map(h => ["h3", h]),
     ["h2", `${C.label} Attorneys in ${city}, ${st.toUpperCase()} Open 24 Hours`],
@@ -205,6 +217,8 @@ for (const p of PAGES) {
       await pg.goto(`${HOST}${control}?lang=${lang}`);
       const clip = await pg.evaluate(heroClip);
       expect(`A (control) 320px ${lang.toUpperCase()}: nothing in the hero runs past the screen edge`, control, !clip, clip);
+      const rental = await pg.evaluate(rentalH2);
+      expect(`A (control) ${lang.toUpperCase()}: rental-car H2 under the call buttons`, control, rental === RENTAL[lang], rental);
     }
     const [ctlTitle, ctlBase] = await pg.evaluate(() => [document.title, JSON.parse(document.getElementById("i18n-es").textContent).title]);
     expect("A (control): ES title gains the city, in Spanish", control, ctlTitle.startsWith(`${ctlBase.split(" | ")[0]}${g.h1city_es} |`), ctlTitle);
@@ -265,11 +279,15 @@ for (const p of PAGES) {
   expect("EN copy names no other market", file, !strayCity.length, strayCity.join(", "));
   expect("320px EN: no horizontal overflow", file, en.over <= 0, `${en.over}px`);
   expect("320px EN: nothing in the hero runs past the screen edge", file, !enClip, enClip);
+  const enRental = await pg.evaluate(rentalH2);
+  expect("EN: rental-car H2 under the call buttons", file, enRental === RENTAL.en, enRental);
 
   // ES
   await pg.goto(HOST + file + "?lang=es");
   const es = await snapshot(pg);
   const esClip = await pg.evaluate(heroClip);
+  const esRental = await pg.evaluate(rentalH2);
+  expect("ES: rental-car H2 under the call buttons, in Spanish", file, esRental === RENTAL.es, esRental);
   const esH1 = `Abogados de Accidentes de ${C.es}${g.h1city_es}`;
   expect("ES H1 reads naturally", file, es.outline[0]?.[1] === esH1, `${es.outline[0]?.[1]} vs ${esH1}`);
   // the same Spanish phrase as the H1: "en Los Ángeles", "en el centro de Dallas"
@@ -298,6 +316,8 @@ for (const cs of Object.keys(CASES)) {
     await pg.goto(`${HOST}${master}?lang=${lang}`);
     const clip = await pg.evaluate(heroClip);
     expect(`national master 320px ${lang.toUpperCase()}: nothing in the hero runs past the screen edge`, master, !clip, clip);
+    const rental = await pg.evaluate(rentalH2);
+    expect(`national master ${lang.toUpperCase()}: rental-car H2 under the call buttons`, master, rental === RENTAL[lang], rental);
   }
   const [title, base] = await pg.evaluate(() => [document.title, JSON.parse(document.getElementById("i18n-es").textContent).title]);
   expect("national master: ES title carries no city", master, title === base, title);
