@@ -3,6 +3,7 @@
    Run after adding markets: node build-hub.mjs */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { outFile as tagFile, photoFile as tagPhotoFile, CASE_TYPES as TAG_CASES } from "./generate-tag-landers.mjs";
+import { GROUPS as REP_GROUPS, slugs as repSlugs, parse as repParse, pageDir as repDir, pageUrl as repUrl } from "./generate-rep-landers.mjs";
 
 const CASES = [
   ["car-accident", "Car Accidents"],
@@ -56,6 +57,23 @@ for (const [group, fileFor] of [["Group B · Headings", tagFile], ["Group C · H
     tagBody += `<div class="reg"><h3>${caseName}</h3><div class="links">${links}</div></div>\n`;
   }
 }
+// the PPC rep's landers (generate-rep-landers.mjs): group D (long) and group E (simple), by case type
+let repCount = 0;
+const repMissing = [];
+let repBody = "";
+const repPages = repSlugs().map(repParse);
+for (const g of ["D", "E"]) {
+  repBody += `<p class="grp">${REP_GROUPS[g].label}</p>\n`;
+  for (const [caseSlug, caseName] of CASES.filter(([c]) => repPages.some(p => p.cs === c))) {
+    const links = repPages.filter(p => p.cs === caseSlug).map(p => {
+      if (!existsSync(`${repDir(g, p.slug)}/index.html`)) { repMissing.push(repDir(g, p.slug)); return ""; }
+      repCount++;
+      return `<a href="${repUrl(g, p.slug)}">${p.cityName}</a>`;
+    }).join("");
+    repBody += `<div class="reg"><h3>${caseName}</h3><div class="links">${links}</div></div>\n`;
+  }
+}
+if (repMissing.length) console.warn(`PPC rep landers not built yet (run node generate-rep-landers.mjs): ${repMissing.join(", ")}`);
 if (tagMissing.length) console.warn(`NEW TAGs landers not built yet (run node generate-tag-landers.mjs): ${tagMissing.join(", ")}`);
 let body = "";
 for (const [caseSlug, caseName] of CASES) {
@@ -98,14 +116,16 @@ code{background:#eef3f2;border-radius:3px;padding:1px 5px;font-size:.72rem}
 <body><div class="wrap">
 <p class="kick">Retainer Reach · Internal Review</p>
 <h1>Goldberg &amp; Loren — Landers</h1>
-<p class="note">${total} landers + ${tagCount} NEW TAGs landers · ${slugs.length} markets · every page has an EN/ES switch (header toggle or the "Se Habla Español" chip) · add <code>?lang=es</code> to any URL to land in Spanish · national pages accept <code>?geo=frisco-tx</code> etc. · forms redirect to <code>/thank-you.html</code></p>
+<p class="note">${total} landers + ${tagCount} NEW TAGs landers + ${repCount} PPC rep landers · ${slugs.length} markets · every page except the PPC rep landers has an EN/ES switch (header toggle or the "Se Habla Español" chip) · add <code>?lang=es</code> to any URL to land in Spanish · national pages accept <code>?geo=frisco-tx</code> etc. · forms redirect to <code>/thank-you.html</code></p>
 ${body}<section><h2>Shared Pages &mdash; Sitelink Destinations</h2><div class="links">${SUPPORT.map(([f, label]) => `<a href="${f}.html?geo=dallas-tx&ct=car-accident">${label}</a>`).join("")}</div>
 <p class="tip">One page serves every market: <code>?geo=</code> swaps the phone number and GTM container, <code>?ct=</code> points the return CTA at the matching lander, <code>?lang=es</code> lands in Spanish.</p></section>
 <section><h2>NEW TAGs Landers</h2>
 ${tagBody}<p class="tip">Group B is built to the client's H1/H2/H3 outline — <code>{City} {Case} Attorneys</code> — and tested against the live lander for the same city and case type (A: Dallas Truck is <code>truck-accident-dallas-tx</code>). Group C is B plus the partners' photo and nothing else. Leads carry <code>variant: {city}-headings</code> (B) or <code>{city}-headings-photo</code> (C) alongside <code>case_type</code>. Setup and reading results: <code>NEW-TAGS-LANDERS.md</code>; every A / B / C URL: <code>CAMPAIGN-URLS-NEW-TAGS.md</code>.</p></section>
+<section><h2>PPC Rep Landers</h2>
+${repBody}<p class="tip">The PPC rep's paid-search designs, Texas only, each tested against the live lander for the same city and case type (A: Dallas Car is <code>car-accident-dallas-tx</code>). Group D is the long page, at the rep's own URLs (<code>/car-accident-lawyer-dallas-tx/</code>); group E is the short form-first page (<code>…-simple/</code>). Leads carry <code>variant: {city}-ppc-long</code> (D) or <code>{city}-ppc-simple</code> (E) alongside <code>case_type</code>. English only. Every A / D / E URL: <code>CAMPAIGN-URLS-PPC-REP.md</code>.</p></section>
 <section><h2>Keyword Test Landers</h2><div class="links">${KW_TESTS.map(([f, label]) => `<a href="${f}">${label}</a>`).join("")}</div></section>
 <section><h2>Shared Pages &mdash; Utility</h2><div class="links"><a href="thank-you.html?geo=austin-tx&ct=car-accident">Thank You (post-submit)</a><a href="privacy-policy.html">Privacy Policy</a><a href="terms.html">Terms of Use</a><a href="404.html">404 Page</a></div></section>
 <p class="tip">This hub is for review only — never send ad traffic here. Campaign final URLs go directly to a city page.</p>
 </div></body></html>
 `);
-console.log(`hub rebuilt — ${slugs.length} markets, ${total} landers, ${tagCount} NEW TAGs landers`);
+console.log(`hub rebuilt — ${slugs.length} markets, ${total} landers, ${tagCount} NEW TAGs landers, ${repCount} PPC rep landers`);
