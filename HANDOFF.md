@@ -553,3 +553,63 @@ approval (after the two-step form and the Spanish fixes), equally across groups.
 check for Search Console. It must stay at `https://results.goldbergloren.com/google7f4eb01d83939e39.html`
 with its one line unchanged. If it is deleted, Search Console un-verifies the
 site. It isn't a page: don't add it to the sitemap or the hub.
+
+## PPC rep landers — groups D and E (2026-10-13)
+The PPC rep's two paid-search designs, 14 Texas pages each (12 car, 2 truck), made
+ad-ready by `node generate-rep-landers.mjs` from the rep's review builds in
+`rep-landers/` (kept out of the deployment). Each is tested against the live lander
+for the same city and case type (A); every URL is in `CAMPAIGN-URLS-PPC-REP.md`, and
+the hub has a "PPC Rep Landers" section.
+
+| Group | URL | Lead tag |
+|---|---|---|
+| **D · long** | `/car-accident-lawyer-dallas-tx/` (the rep's own URLs) | `variant: {city}-ppc-long` |
+| **E · simple** | `/car-accident-lawyer-dallas-tx-simple/` | `variant: {city}-ppc-simple` |
+
+The rep's design and copy are kept. What the build changes:
+- **Review notes and unverified claims removed:**
+  - every yellow VERIFY / PLACEHOLDER / "Legal review" note, the review-build comments, and the JSON-LD block (the pages are noindex; its FAQ text carried the notes)
+  - D's review-site badge row (Google rating, Avvo, Martindale-Hubbell, Super Lawyers)
+  - the empty "Texas result" card; the results grid is two columns now
+  - "home or hospital" visits; "by phone or video" stays
+  - D's Prosper ER list
+  - the unverified Denton County courthouse address. "Denton County district courts, Denton" stays.
+- **Kept, because the live landers already say the same:**
+  - the four stats ($550M+, 20,000+, 30+ years, 50+ trials)
+  - the three client reviews, word for word
+  - the two published results ($1,025,000 and $4,500,000)
+  - the Texas two-year filing deadline and 50% fault rule
+- **Forms send leads:**
+  - Every form posts to the live landers' Formspree inbox (`_subject` GoldbergandlorenPPC) and lands on `/thank-you.html`, which fires the conversion.
+  - D's bottom form gained the consent box it was missing. D's consent box is required, as on the live landers. D's "Were you injured?" answer is no longer pre-selected.
+  - E keeps the rep's consent-by-submitting wording.
+  - Phone numbers must match the control's, or the build stops.
+- **Tracking:** GTM, Microsoft Clarity and ClickCease, copied from the control.
+- **Added:** the partners' photo in the hero. In D the partners stand behind the form; in E the photo replaces George's headshot. Both groups also get the "Ask Us About Our Rental Car" H2 under the call buttons.
+- **Small fixes:**
+  - D's dead "ES" link is removed. The pages are English only.
+  - "Attorney-client confidential" now reads "Confidential", because a web form isn't privileged.
+  - Images moved to `/img/`, including `img/gl-logo.svg`.
+
+**Still the firm's call before ads run:** the rep's note asking whether these pages
+need Texas Rule 7.02/7.04 review or filing with the State Bar Advertising Review
+Committee. The rep also flagged items that are on the **live** landers today:
+- the $8,700,000 trucking and $14,600,000 construction results, which aren't on goldbergloren.com/case-results
+- "Avvo 5.0" (the main site says 10.0)
+- "Martindale-Hubbell Distinguished" (vs AV Preeminent)
+- George's bio: "defending insurance companies" vs the main site's "airlines and corporations"
+
+**Rebuilding:** if the rep sends new drafts, replace the files in `rep-landers/long/`
+and `rep-landers/simple/` and re-run `node generate-rep-landers.mjs`, then
+`node build-hub.mjs`. Each removal expects what it removes. If the rep changed
+something, the build stops and names it, so the new wording gets checked by hand
+before it publishes.
+
+**Tests:** `tests/rep-landers-e2e.mjs` covers all 28 pages:
+- no note or unverified claim left
+- noindex and canonical
+- the control's phone number and tracking
+- no overflow or clipping at 320 and 390px
+- photo, name tags and rental-car heading
+- both forms on every page: payload fields, variant tag, thank-you redirect
+- validation and a failed send on a sample

@@ -7,3 +7,5 @@ tests/
 package.json
 package-lock.json
 node_modules/
+# the PPC rep's review builds (sources for generate-rep-landers.mjs): drafts with VERIFY notes, never served
+rep-landers/
