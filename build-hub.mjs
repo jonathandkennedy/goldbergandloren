@@ -3,7 +3,7 @@
    Run after adding markets: node build-hub.mjs */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { outFile as tagFile, photoFile as tagPhotoFile, CASE_TYPES as TAG_CASES } from "./generate-tag-landers.mjs";
-import { GROUPS as REP_GROUPS, slugs as repSlugs, parse as repParse, pageDir as repDir, pageUrl as repUrl } from "./generate-rep-landers.mjs";
+import { GROUPS as REP_GROUPS, slugs as repSlugs, parse as repParse, pageDir as repDir, pageUrl as repUrl, azPages, AZ } from "./generate-rep-landers.mjs";
 
 const CASES = [
   ["car-accident", "Car Accidents"],
@@ -73,6 +73,17 @@ for (const g of ["D", "E"]) {
     repBody += `<div class="reg"><h3>${caseName}</h3><div class="links">${links}</div></div>\n`;
   }
 }
+// and Arizona: one page per keyword, by area, then the sitelinks
+repBody += `<p class="grp">Arizona · PPC rep, one page per keyword</p>\n`;
+const az = azPages();
+for (const area of [...new Set(az.map(p => p.kind === "keyword" ? p.areaName : "Sitelinks"))]) {
+  const links = az.filter(p => (p.kind === "keyword" ? p.areaName : "Sitelinks") === area).map(p => {
+    if (!existsSync(`${p.dir}/index.html`)) { repMissing.push(p.dir); return ""; }
+    repCount++;
+    return `<a href="${p.url}">${(p.keyword || p.page).replace(/-/g, " ")}</a>`;
+  }).join("");
+  repBody += `<div class="reg"><h3>${area}</h3><div class="links">${links}</div></div>\n`;
+}
 if (repMissing.length) console.warn(`PPC rep landers not built yet (run node generate-rep-landers.mjs): ${repMissing.join(", ")}`);
 if (tagMissing.length) console.warn(`NEW TAGs landers not built yet (run node generate-tag-landers.mjs): ${tagMissing.join(", ")}`);
 let body = "";
@@ -122,7 +133,7 @@ ${body}<section><h2>Shared Pages &mdash; Sitelink Destinations</h2><div class="l
 <section><h2>NEW TAGs Landers</h2>
 ${tagBody}<p class="tip">Group B is built to the client's H1/H2/H3 outline — <code>{City} {Case} Attorneys</code> — and tested against the live lander for the same city and case type (A: Dallas Truck is <code>truck-accident-dallas-tx</code>). Group C is B plus the partners' photo and nothing else. Leads carry <code>variant: {city}-headings</code> (B) or <code>{city}-headings-photo</code> (C) alongside <code>case_type</code>. Setup and reading results: <code>NEW-TAGS-LANDERS.md</code>; every A / B / C URL: <code>CAMPAIGN-URLS-NEW-TAGS.md</code>.</p></section>
 <section><h2>PPC Rep Landers</h2>
-${repBody}<p class="tip">The PPC rep's paid-search designs, Texas only, each tested against the live lander for the same city and case type (A: Dallas Car is <code>car-accident-dallas-tx</code>). Group D is the long page, at the rep's own URLs (<code>/car-accident-lawyer-dallas-tx/</code>); group E is the short form-first page (<code>…-simple/</code>). Leads carry <code>variant: {city}-ppc-long</code> (D) or <code>{city}-ppc-simple</code> (E) alongside <code>case_type</code>. English only. Every A / D / E URL: <code>CAMPAIGN-URLS-PPC-REP.md</code>.</p></section>
+${repBody}<p class="tip">The PPC rep's paid-search designs. Texas: each tested against the live lander for the same city and case type (A: Dallas Car is <code>car-accident-dallas-tx</code>). Group D is the long page, at the rep's own URLs (<code>/car-accident-lawyer-dallas-tx/</code>); group E is the short form-first page (<code>…-simple/</code>). Leads carry <code>variant: {city}-ppc-long</code> (D) or <code>{city}-ppc-simple</code> (E) alongside <code>case_type</code>. Arizona: one short page per ad-group keyword at <code>/az/{area}/{keyword}/</code>, calls to ${AZ.display}, leads tagged <code>variant: az-{area}-{keyword}</code>. English only. Every URL: <code>CAMPAIGN-URLS-PPC-REP.md</code>.</p></section>
 <section><h2>Keyword Test Landers</h2><div class="links">${KW_TESTS.map(([f, label]) => `<a href="${f}">${label}</a>`).join("")}</div></section>
 <section><h2>Shared Pages &mdash; Utility</h2><div class="links"><a href="thank-you.html?geo=austin-tx&ct=car-accident">Thank You (post-submit)</a><a href="privacy-policy.html">Privacy Policy</a><a href="terms.html">Terms of Use</a><a href="404.html">404 Page</a></div></section>
 <p class="tip">This hub is for review only — never send ad traffic here. Campaign final URLs go directly to a city page.</p>

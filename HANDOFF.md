@@ -148,7 +148,10 @@ Pages auto-load GTM and push two events with `case_type` + `geo`:
   Honeypot bot submissions never redirect and never fire the event.
   Meta ads: fire the pixel `Lead` event on the /thank-you.html pageview.
 Container wiring: per-geo `"gtm"` key in the `#geo-data` block (Boise is live:
-`GTM-58MTFGGD`), site-wide fallback: `CONFIG.gtmId`. NEEDED from Jon/client:
+`GTM-58MTFGGD`), site-wide fallback: `CONFIG.gtmId`. The thank-you page keeps its
+own copy of that map (`var GTM` in thank-you.html, plus `"az"` for the Arizona rep
+pages): **add a market's container in both places**; `tests/rep-landers-e2e.mjs`
+fails if they differ. NEEDED from Jon/client:
 container IDs for Oregon, Midland TX, Plantation FL accounts (+ any others).
 Inside each container: GA4 tag + Google Ads conversion tags fired on those two
 events. **Count calls as conversions** — 56% of legal conversions are calls.
@@ -568,7 +571,7 @@ the hub has a "PPC Rep Landers" section.
 
 The rep's design and copy are kept. What the build changes:
 - **Review notes and unverified claims removed:**
-  - every yellow VERIFY / PLACEHOLDER / "Legal review" note, the review-build comments, and the JSON-LD block (the pages are noindex; its FAQ text carried the notes)
+  - every yellow VERIFY / PLACEHOLDER / "Legal review" note and the review-build comments. The rep's JSON-LD is rebuilt from the cleaned page (since 2026-10-14, below); its FAQ text carried the notes.
   - D's review-site badge row (Google rating, Avvo, Martindale-Hubbell, Super Lawyers)
   - the empty "Texas result" card; the results grid is two columns now
   - "home or hospital" visits; "by phone or video" stays
@@ -605,7 +608,7 @@ and `rep-landers/simple/` and re-run `node generate-rep-landers.mjs`, then
 something, the build stops and names it, so the new wording gets checked by hand
 before it publishes.
 
-**Tests:** `tests/rep-landers-e2e.mjs` covers all 28 pages:
+**Tests:** `tests/rep-landers-e2e.mjs` covers all 28 pages (and Arizona's 70 since 2026-10-14):
 - no note or unverified claim left
 - noindex and canonical
 - the control's phone number and tracking
@@ -613,3 +616,54 @@ before it publishes.
 - photo, name tags and rental-car heading
 - both forms on every page: payload fields, variant tag, thank-you redirect
 - validation and a failed send on a sample
+
+## PPC rep fixes and the Arizona pages (2026-10-14)
+**The rep's (Igor's) three asks, on all 28 Texas pages:**
+- **Titles fit in 60 characters.** The "| Goldberg & Loren" tail is dropped wherever the title would be longer.
+  - D keeps the rep's title, e.g. "Dallas Car Accident Lawyer | Free Case Review 24/7".
+  - E is titled from its own headline, e.g. "Car Accident Lawyer in Dallas, TX | Free Case Review 24/7".
+- **No shared titles or descriptions.** E has its own meta description. The build stops if two of the 98 rep pages share a title or a description.
+- **Schema is back.**
+  - Every page carries the rep's LegalService block, with the page's own phone number.
+  - Pages with an FAQ also carry FAQPage markup, generated from the questions and answers shown on the page.
+  - The rep's version was removed earlier because its FAQ text carried the VERIFY notes; generating it from the page keeps the schema and the page identical.
+
+**Arizona: 70 pages from the rep's AZ set** (`rep-landers/az/`, E's design):
+- 63 keyword pages, one per ad-group keyword, at `/az/{area}/{keyword}/`. The areas: Flagstaff, Mohave County, Pinal County, Prescott Area, Tucson Metro, West Valley, Yuma.
+- 7 sitelink pages at `/az/{page}/`: About, Arizona FAQs, Free Case Review, Injuries We Handle, No Fee Unless We Win, Truck Accident Claims, What To Do After a Crash.
+- Calls go to (520) 376-2425 (confirmed as the firm's number).
+- Leads go to the same Formspree inbox, tagged `geo: az-{area}` (sitelinks: `az`) and `variant: az-{area}-{keyword}`.
+- Every URL and lead tag is in `CAMPAIGN-URLS-PPC-REP.md`. The hub lists them by area.
+
+Decisions the firm made (2026-10-14):
+- **James M. Loren** is named as the attorney responsible for the ads and for Arizona cases. This assumes he is admitted in Arizona.
+- **The three client reviews stay, labelled "Texas client".** They are real reviews from the live site, word for word, but from Texas clients.
+- **Arizona law statements and ADOT crash counts stay.** Every ADOT figure was checked against ADOT's 2024 Crash Facts (county Table 2-2, city Table 2-5) and matches; West Valley's 4,518 is the sum of its six cities.
+  - Yuma's "among the highest rates per resident in Arizona" is removed, because ADOT's report doesn't say it.
+
+The build removes the same unverified claims as in Texas: "home or hospital" visits and the review-site badge row. The About page's facts ($550M+ and 20,000+ cases since 1994, George Goldberg as founding partner, the Lakeway office) match the live landers and stay.
+
+**Tracking:**
+- Arizona has no live lander of its own. Its pages carry the Dallas lander's GTM, Clarity and ClickCease blocks, so the GTM container is **GTM-NK6KTLNL**, the one the rep's Texas pages use.
+- If the Arizona ads run in a different Google Ads account with its own container, change `AZ.gtm`/`AZ.trackFrom` in `generate-rep-landers.mjs` and the `"az"` entry in thank-you.html.
+
+**Thank-you page conversion fix (all landers, not only the rep's):**
+- thank-you.html loaded a GTM container for only 6 markets. The landers' geo data assigns containers to 17.
+- Since 2026-08-18, form leads from San Antonio, Downtown Dallas, Arlington, Dallas–Fort Worth, Fort Worth, Grapevine, Rockwall, Frisco, Plano, Celina, Prosper and McKinney reached a thank-you page with no container. Their `lead_form_submit` conversion never reached GTM. Calls (`call_click`) were tracked on the landers and are unaffected.
+- The map is now complete. Markets with no container (Los Angeles, Las Vegas, Fresno, Fargo, the national pages) still load none.
+- Expect form conversions in those 12 markets to rise from here. That's tracking, not a change in lead volume.
+
+**Still the firm's call before the Arizona ads run:**
+- a review against the Arizona Rules of Professional Conduct ER 7.1–7.3 and Ariz. R. Sup. Ct. 42 (the rep's note)
+- confirming Arizona admission for the named attorney
+- the "No Arizona office" wording, which the rep wrote into every page and footer
+
+**Rebuilding** works as before: replace the drafts in `rep-landers/az/` and run `node generate-rep-landers.mjs`, then `node build-hub.mjs`.
+
+**Tests:** `tests/rep-landers-e2e.mjs` now covers all 98 pages. On top of the Texas checks:
+- titles ≤60 characters, and no shared title or description
+- one valid JSON-LD block: LegalService with the page's number, and FAQPage matching the visible FAQ word for word
+- one GTM container per page: the market's
+- Arizona: phone, responsible attorney, "Texas client" labels, every form's lead tags
+- the thank-you map matches the landers' containers, and the page loads the right container for sample geos
+

@@ -90,15 +90,22 @@ width="0" height="0" style="display:none"></iframe></noscript>
   var ct = q.get("ct") || "unknown";
   var es = q.get("lang") === "es";
 
-  /* per-market GTM container, then the conversion event */
-  var GTM = {"boise-id":"GTM-58MTFGGD","portland-or":"GTM-MPL8PDW7","midland-tx":"GTM-MMQN8KKD",
-             "plantation-fl":"GTM-PGZK4SLB","austin-tx":"GTM-NK6KTLNL","dallas-tx":"GTM-NK6KTLNL"};
+  /* per-market GTM container (the "gtm" keys in the landers' geo data; Arizona pages send
+     geo=az or az-{area}), then the conversion event */
+  var GTM = {"portland-or":"GTM-MPL8PDW7","boise-id":"GTM-58MTFGGD","midland-tx":"GTM-MMQN8KKD",
+             "austin-tx":"GTM-NK6KTLNL","san-antonio-tx":"GTM-NK6KTLNL","dallas-tx":"GTM-NK6KTLNL",
+             "downtown-dallas-tx":"GTM-NK6KTLNL","arlington-tx":"GTM-NK6KTLNL","dallas-fort-worth-tx":"GTM-NK6KTLNL",
+             "fort-worth-tx":"GTM-NK6KTLNL","grapevine-tx":"GTM-NK6KTLNL","rockwall-tx":"GTM-NK6KTLNL",
+             "frisco-tx":"GTM-NK6KTLNL","plano-tx":"GTM-NK6KTLNL","celina-tx":"GTM-NK6KTLNL",
+             "prosper-tx":"GTM-NK6KTLNL","mckinney-tx":"GTM-NK6KTLNL","plantation-fl":"GTM-PGZK4SLB",
+             "az":"GTM-NK6KTLNL"};
+  var gtmId = GTM[geo] || GTM[geo.split("-")[0] === "az" ? "az" : ""];
   window.dataLayer = window.dataLayer || [];
-  if (GTM[geo]) {
+  if (gtmId) {
     window.dataLayer.push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
     var gs = document.createElement("script");
     gs.async = true;
-    gs.src = "https://www.googletagmanager.com/gtm.js?id=" + GTM[geo];
+    gs.src = "https://www.googletagmanager.com/gtm.js?id=" + gtmId;
     document.head.appendChild(gs);
   }
   window.dataLayer.push({ event: "lead_form_submit", case_type: ct, geo: geo || "unknown", lang: es ? "es" : "en" });
