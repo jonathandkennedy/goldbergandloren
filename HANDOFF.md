@@ -646,6 +646,12 @@ The build removes the same unverified claims as in Texas: "home or hospital" vis
 **Tracking:**
 - Arizona has no live lander of its own. Its pages carry the Dallas lander's GTM, Clarity and ClickCease blocks, so the GTM container is **GTM-NK6KTLNL**, the one the rep's Texas pages use.
 - If the Arizona ads run in a different Google Ads account with its own container, change `AZ.gtm`/`AZ.trackFrom` in `generate-rep-landers.mjs` and the `"az"` entry in thank-you.html.
+- **Call tracking (2026-10-16):**
+  - Every Arizona page loads the firm's CallTrackingMetrics number-swap script (company 977831359), verbatim, at the end of the body so it doesn't hold up the page.
+  - Texas pages don't load it.
+  - The number on the page is (520) 376-2425. The script replaces it with tracking numbers for visitors as CallTrackingMetrics is configured, and anyone it doesn't load for still calls (520) 376-2425.
+  - The snippet is `AZ.callTracking` in `generate-rep-landers.mjs`.
+  - The thank-you page doesn't load it.
 
 **Thank-you page conversion fix (all landers, not only the rep's):**
 - thank-you.html loaded a GTM container for only 6 markets. The landers' geo data assigns containers to 17.

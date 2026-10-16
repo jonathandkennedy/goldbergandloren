@@ -87,6 +87,8 @@ for (const p of PAGES) {
   expect("GTM, Clarity and ClickCease exactly as on the control", file, TRACKING.every(re => { const c = ctl.match(re); return c && html.includes(c[0]); }));
   const gtms = [...new Set(html.match(/GTM-[A-Z0-9]+/g))];
   expect("one GTM container: the market's", file, gtms.length === 1 && gtms[0] === (p.control ? geoGtm[p.geo] : AZ.gtm), gtms.join());
+  const ctm = (html.match(/calltrk\.com/g) || []).length;
+  expect("CallTrackingMetrics on the Arizona pages only, once", file, p.group === "AZ" ? ctm === 1 && html.includes(AZ.callTracking) : ctm === 0, `${ctm} found`);
 
   // titles short enough not to be cut off; every title and description the page's own
   const title = decode((html.match(/<title>([^<]*)<\/title>/) || [, ""])[1]);
@@ -126,7 +128,7 @@ for (const p of PAGES) {
 // ---- browser
 const browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
 const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type,Accept" };
-let posts = [], formspreeStatus = 200, gtmRequests = [];
+let posts = [], formspreeStatus = 200, gtmRequests = [], ctmRequests = [];
 const newCtx = async width => {
   // non-mobile on purpose: mobile emulation widens the layout viewport and hides overflow
   const ctx = await browser.newContext({ viewport: { width, height: 800 } });
@@ -135,7 +137,12 @@ const newCtx = async width => {
     posts.push(JSON.parse(route.request().postData()));
     return route.fulfill({ status: formspreeStatus, headers: CORS, contentType: "application/json", body: formspreeStatus === 200 ? '{"ok":true}' : '{"error":"x"}' });
   });
-  await ctx.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com/, r => { if (/gtm\.js/.test(r.request().url())) gtmRequests.push(r.request().url()); return r.abort(); });
+  await ctx.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com|calltrk\.com/, r => {
+    const u = r.request().url();
+    if (/gtm\.js/.test(u)) gtmRequests.push(u);
+    if (/calltrk\.com\/.*\/swap\.js$/.test(u)) ctmRequests.push(u);
+    return r.abort();
+  });
   return ctx;
 };
 // .hero{overflow:hidden} would hide clipping from scrollWidth: check the hero's own boxes
@@ -187,7 +194,7 @@ for (const width of [320, 390]) {
   pg.on("response", r => { if (r.url().startsWith(HOST) && r.status() >= 400) missing.push(r.url()); });
   for (const p of PAGES) {
     const file = p.url;
-    missing.length = 0;
+    missing.length = 0; ctmRequests = [];
     await pg.goto(HOST + p.url);
     await pg.waitForFunction(() => { const i = document.querySelector(".hero-team img"); return i && i.complete; }, null, { timeout: 5000 }).catch(() => {});
     const s = await snapshot(pg);
@@ -200,6 +207,7 @@ for (const width of [320, 390]) {
     expect("partners' photo loads, name tags James M. Loren and George Z. Goldberg", file, s.photo && s.tags.join() === "James M. Loren,George Z. Goldberg", `${s.photo} ${s.tags}`);
     expect("page_variant pushed once, with the group's tag", file, s.dl.length === 1 && s.dl[0] === p.variant, JSON.stringify(s.dl));
     expect("no review note in the rendered text", file, !/VERIFY|PLACEHOLDER|Legal review/.test(s.text));
+    expect("Arizona pages load the CallTrackingMetrics number swap; Texas pages don't", file, ctmRequests.length === (p.group === "AZ" ? 1 : 0), `${ctmRequests.length} requests`);
 
     // both forms send a tagged lead and land on the thank-you page
     for (const form of p.kind === "sitelink" ? ["hero"] : ["hero", "bottom"]) {
