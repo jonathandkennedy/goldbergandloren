@@ -18,7 +18,11 @@ const HOST = "http://localhost:8934/";
 
 const browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
 const page = await browser.newPage();
-await page.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com/, r => r.abort());
+let ctmRequests = [];
+await page.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com|calltrk\.com/, r => {
+  if (/calltrk\.com\/.*\/swap\.js$/.test(r.request().url())) ctmRequests.push(r.request().url());
+  return r.abort();
+});
 
 let failures = 0;
 const check = (label, cond) => { console.log((cond ? "PASS " : "FAIL ") + label); if (!cond) failures++; };
@@ -116,6 +120,16 @@ await page.goto(HOST + "settlements.html?geo=%3Cscript%3E&ct=../../evil");
 check("hostile geo/ct params fall back safely",
   (await page.$eval("a.js-tel", a => a.getAttribute("href"))) === "tel:+15129603887" &&
   (await page.$$eval("a.js-form-link", n => n.every(a => /^(car|truck|motorcycle|rideshare)-accident\.html\?geo=default/.test(a.getAttribute("href"))))));
+
+// 5b. a Texas market loads the Texas CallTrackingMetrics number swap (the "ctm" in its geo
+// data); other markets and the default page load none
+for (const [geo, want] of [["dallas-tx", "689248831"], ["san-antonio-tx", "689248831"], ["midland-tx", "689248831"], ["boise-id", ""], ["", ""]]) {
+  ctmRequests = [];
+  await page.goto(HOST + "no-fee.html" + (geo ? "?geo=" + geo : ""));
+  await page.waitForTimeout(100);
+  const got = ctmRequests.map(u => u.match(/companies\/(\d+)\//)[1]).join();
+  check(`call tracking for ${geo || "the default page"}: ${got || "none"}`, got === want);
+}
 
 // 6. ?ct= routes every return CTA at the matching lander and carries geo through
 await page.goto(HOST + "case-review.html?geo=dallas-tx&ct=motorcycle-accident");
@@ -303,7 +317,7 @@ for (const slug of PAGES) {
 for (const w of [320, 390, 1440]) {
   const ctx = await browser.newContext({ viewport: { width: w, height: 800 } });
   const pg = await ctx.newPage();
-  await pg.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com/, r => r.abort());
+  await pg.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com|calltrk\.com/, r => r.abort());
   for (const lang of ["en", "es"]) {
     const problems = [];
     for (const slug of PAGES) {

@@ -26,7 +26,7 @@ await page.route(/formspree\.io/, async route => {
   posts.push(JSON.parse(route.request().postData()));
   return route.fulfill({ status: 200, headers: CORS, contentType: "application/json", body: '{"ok":true}' });
 });
-await page.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com/, r => r.abort());
+await page.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com|calltrk\.com/, r => r.abort());
 
 let failures = 0;
 const check = (label, cond) => { console.log((cond ? "PASS " : "FAIL ") + label); if (!cond) failures++; };
@@ -149,7 +149,7 @@ const heroClip = () => {
 for (const w of [320, 390, 1440]) for (const lang of ["en", "es"]) {
   const ctx = await browser.newContext({ viewport: { width: w, height: 800 } });
   const pg = await ctx.newPage();
-  await pg.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com|formspree/, r => r.abort());
+  await pg.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com|calltrk\.com|formspree/, r => r.abort());
   await pg.goto(PAGE + "?lang=" + lang);
   const over = await pg.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(`${w}px ${lang.toUpperCase()}: no horizontal overflow (${over}px)`, over <= 0);

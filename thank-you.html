@@ -110,6 +110,17 @@ width="0" height="0" style="display:none"></iframe></noscript>
   }
   window.dataLayer.push({ event: "lead_form_submit", case_type: ct, geo: geo || "unknown", lang: es ? "es" : "en" });
 
+  /* the state's CallTrackingMetrics number swap, as on its landers (the "ctm" keys in the
+     landers' geo data: every Texas market; Arizona pages send geo=az or az-{area}) */
+  var CTM = {"tx":"//cdn.calltrk.com/companies/689248831/ca0b85e7f304bb9accd9/12/swap.js",
+             "az":"//cdn.calltrk.com/companies/977831359/decf00814d0bf9e721cf/12/swap.js"};
+  var ctm = CTM[/-tx$/.test(geo) ? "tx" : geo.split("-")[0] === "az" ? "az" : ""];
+  if (ctm) {
+    var cs = document.createElement("script");
+    cs.type = "text/javascript"; cs.src = ctm;
+    document.body.appendChild(cs);
+  }
+
   if (es) {
     document.documentElement.lang = "es";
     document.title = "Gracias | Goldberg & Loren";

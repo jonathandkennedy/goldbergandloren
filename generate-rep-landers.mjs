@@ -30,8 +30,9 @@
  *   - the forms send leads: same Formspree inbox, same thank-you page and conversion as the
  *     live landers, tagged variant {city}-ppc-long (D), {city}-ppc-simple (E) or
  *     az-{area}-{keyword} (AZ)
- *   - the live landers' tracking: GTM, Microsoft Clarity, ClickCease (Arizona: the Dallas
- *     lander's, i.e. the container in AZ.gtm, plus CallTrackingMetrics number swap)
+ *   - the live landers' tracking: GTM, Microsoft Clarity, ClickCease and the CallTrackingMetrics
+ *     number swap (Arizona: the Dallas lander's GTM, Clarity and ClickCease, i.e. the container
+ *     in AZ.gtm, and its own CallTrackingMetrics account)
  *   - the partners' photo in the hero, and the "Ask Us About Our Rental Car" heading every
  *     lander carries, under the call buttons
  *   - titles fit in 60 characters (the "| Goldberg & Loren" tail goes where it doesn't fit),
@@ -360,7 +361,9 @@ function build(p) {
   if (faq.length) graph.push({ "@type": "FAQPage", mainEntity: faq });
   const json = JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c");
   rep("</head>", `<script type="application/ld+json">${json}</script>\n</head>`, "closing head tag");
-  rep("</body>", script(p, display) + (az ? "\n" + AZ.callTracking : "") + "\n</body>", "closing body tag");
+  // call tracking: the control's CallTrackingMetrics block (Texas), or Arizona's own account
+  const ctm = az ? AZ.callTracking : grab(/<!-- CallTrackingMetrics -->[\s\S]*?<!-- End CallTrackingMetrics -->/);
+  rep("</body>", script(p, display) + "\n" + ctm + "\n</body>", "closing body tag");
 
   // nothing the rep marked may survive, and nothing may point nowhere
   for (const bad of ["VERIFY", "PLACEHOLDER", "Legal review", 'class="ph"', "../assets/", 'href="#"', "onsubmit", "hospital room", "home or hospital", "home or the hospital", "TEXAS RESULT", "highest rates per resident"])

@@ -133,7 +133,7 @@ const newCtx = async (width, height = 800) => {
     posts.push(JSON.parse(route.request().postData()));
     return route.fulfill({ status: 200, headers: CORS, contentType: "application/json", body: '{"ok":true}' });
   });
-  await ctx.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com/, r => r.abort());
+  await ctx.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com|calltrk\.com/, r => r.abort());
   return ctx;
 };
 const photoLoaded = pg => pg.waitForFunction(() => { const i = document.querySelector(".hero-team img"); return !i || i.complete; }, null, { timeout: 5000 }).catch(() => {});

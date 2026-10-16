@@ -31,6 +31,7 @@ const rating = v => {
 const GEO_MIN = Object.fromEntries(Object.entries(GEOS).map(([k, v]) => {
   const r = rating(v);
   const rec = { city: v.city || "", phone: v.phone, display: v.phoneDisplay, gtm: v.gtm || "" };
+  if (v.ctm) rec.ctm = v.ctm; // the market's CallTrackingMetrics number swap (Texas)
   if (r) { rec.stars = r.stars; rec.count = r.count; }
   return [k, rec];
 }));
@@ -815,6 +816,13 @@ ${JSON.stringify(GEO_MIN)}
     var s = document.createElement("script");
     s.async = true; s.src = "https://www.googletagmanager.com/gtm.js?id=" + g.gtm;
     document.head.appendChild(s);
+  }
+  // the market's CallTrackingMetrics number swap, where it has one; it swaps the number
+  // applyGeo() just set
+  if (g.ctm) {
+    var c = document.createElement("script");
+    c.type = "text/javascript"; c.src = g.ctm;
+    document.body.appendChild(c);
   }
   function track(ev){
     window.dataLayer = window.dataLayer || [];
