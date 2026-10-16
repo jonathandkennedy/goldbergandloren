@@ -67,6 +67,13 @@ function bake(slug) {
     out = out.replace('<meta charset="utf-8">', '<meta charset="utf-8">' + headSnippet);
     out = out.replace(/<body>/, '<body>' + noscript);
   }
+  // and the market's CallTrackingMetrics number swap ("ctm" in the geo data: the Texas markets),
+  // the firm's snippet as given, at the end of the body so it doesn't hold up the page
+  if (g.ctm) {
+    const ctm = `<!-- CallTrackingMetrics -->\n<script type="text/javascript" src="${g.ctm}"></script>\n<!-- End CallTrackingMetrics -->\n`;
+    if ((out.match(/<\/body>/g) || []).length !== 1) { console.error(`${slug}: expected one </body>`); process.exit(1); }
+    out = out.replace("</body>", ctm + "</body>");
+  }
 
   const stem = basename(path, ".html");
   const dest = resolve(dirname(path), `${stem}-${slug}.html`);

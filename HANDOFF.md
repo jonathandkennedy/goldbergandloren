@@ -154,7 +154,25 @@ pages): **add a market's container in both places**; `tests/rep-landers-e2e.mjs`
 fails if they differ. NEEDED from Jon/client:
 container IDs for Oregon, Midland TX, Plantation FL accounts (+ any others).
 Inside each container: GA4 tag + Google Ads conversion tags fired on those two
-events. **Count calls as conversions** — 56% of legal conversions are calls.
+events.
+
+### Call tracking — CallTrackingMetrics (2026-10-16)
+The "CallRail" numbers are swapped by **CallTrackingMetrics** (`cdn.calltrk.com`), one account per state.
+
+| State | Account | Snippet lives in |
+|---|---|---|
+| Texas, all 15 markets incl. Midland | company 689248831 | `"ctm"` key in each Texas market's `#geo-data` record, in all 4 masters |
+| Arizona | company 977831359 | `AZ.callTracking` in `generate-rep-landers.mjs` |
+
+Before this, no swap script ran on any page. The GTM container doesn't load one (it holds only Google Ads AW-18397760758 and GA4 G-E8XSSR3M8Q), so Texas calls were tracked only per number and market.
+
+Where the script loads:
+- **Baked pages:** `generate-geo.mjs` bakes the snippet, verbatim, at the end of the body of every Texas lander. The keyword-test, tag (B/C) and rep (D/E) pages copy it from those landers.
+- **Sitelink pages:** they load it at runtime when `?geo=` is a Texas market.
+- **thank-you.html:** it keeps its own two-entry `var CTM` map (tx / az), so a visitor who calls from it is still attributed.
+- **Not loaded:** other markets and the national pages without `?geo=`.
+
+`tests/rep-landers-e2e.mjs` sweeps every page for the right block (214 Texas, 70 Arizona, none elsewhere) and checks the geo data and the thank-you map against each other. To add a state, give its markets a `"ctm"` and add it to the thank-you map. **Count calls as conversions** — 56% of legal conversions are calls.
 
 ## Legal pages + footer (2026-09-14)
 - `privacy-policy.html` and `terms.html` — subdomain-specific, written for THESE
@@ -646,6 +664,12 @@ The build removes the same unverified claims as in Texas: "home or hospital" vis
 **Tracking:**
 - Arizona has no live lander of its own. Its pages carry the Dallas lander's GTM, Clarity and ClickCease blocks, so the GTM container is **GTM-NK6KTLNL**, the one the rep's Texas pages use.
 - If the Arizona ads run in a different Google Ads account with its own container, change `AZ.gtm`/`AZ.trackFrom` in `generate-rep-landers.mjs` and the `"az"` entry in thank-you.html.
+- **Call tracking (2026-10-16):**
+  - Every Arizona page loads the firm's Arizona CallTrackingMetrics number-swap script (company 977831359), verbatim, at the end of the body so it doesn't hold up the page.
+  - Texas pages load Texas's own account; see "Call tracking — CallTrackingMetrics" under Tracking.
+  - The number on the page is (520) 376-2425. The script replaces it with tracking numbers for visitors as CallTrackingMetrics is configured, and anyone it doesn't load for still calls (520) 376-2425.
+  - The snippet is `AZ.callTracking` in `generate-rep-landers.mjs`.
+  - The thank-you page doesn't load it.
 
 **Thank-you page conversion fix (all landers, not only the rep's):**
 - thank-you.html loaded a GTM container for only 6 markets. The landers' geo data assigns containers to 17.

@@ -23,7 +23,7 @@ await page.route(/formspree\.io/, async route => {
   posts.push(JSON.parse(route.request().postData()));
   return route.fulfill({ status: 200, headers: CORS, contentType: "application/json", body: '{"ok":true}' });
 });
-await page.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com/, r => r.abort());
+await page.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com|calltrk\.com/, r => r.abort());
 
 let failures = 0;
 const check = (label, cond) => { console.log((cond ? "PASS " : "FAIL ") + label); if (!cond) failures++; };
@@ -103,7 +103,7 @@ const heroClip = () => {
   return worst ? `${worst.tagName.toLowerCase()}${worst.getAttribute("class") ? "." + worst.getAttribute("class").split(" ")[0] : ""} +${Math.round(px)}px` : "";
 };
 const small = await browser.newContext({ viewport: { width: 320, height: 800 } });
-await small.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com|formspree/, r => r.abort());
+await small.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com|calltrk\.com|formspree/, r => r.abort());
 const sp = await small.newPage();
 for (const ct of ["car-accident", "truck-accident", "motorcycle-accident"]) for (const geo of ["dallas-tx", "fort-worth-tx"]) {
   for (const lang of ["en", "es"]) {

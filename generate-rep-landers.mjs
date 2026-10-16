@@ -30,8 +30,9 @@
  *   - the forms send leads: same Formspree inbox, same thank-you page and conversion as the
  *     live landers, tagged variant {city}-ppc-long (D), {city}-ppc-simple (E) or
  *     az-{area}-{keyword} (AZ)
- *   - the live landers' tracking: GTM, Microsoft Clarity, ClickCease (Arizona: the Dallas
- *     lander's, i.e. the container in AZ.gtm)
+ *   - the live landers' tracking: GTM, Microsoft Clarity, ClickCease and the CallTrackingMetrics
+ *     number swap (Arizona: the Dallas lander's GTM, Clarity and ClickCease, i.e. the container
+ *     in AZ.gtm, and its own CallTrackingMetrics account)
  *   - the partners' photo in the hero, and the "Ask Us About Our Rental Car" heading every
  *     lander carries, under the call buttons
  *   - titles fit in 60 characters (the "| Goldberg & Loren" tail goes where it doesn't fit),
@@ -54,7 +55,12 @@ export const GROUPS = {
 // Arizona has no live lander of its own: its tracking is copied from the Dallas lander, i.e. the
 // GTM container the rep's Texas pages use (one constant to change if AZ gets its own container)
 export const AZ = { phone: "+15203762425", display: "(520) 376-2425", attorney: "James M. Loren",
-  gtm: "GTM-NK6KTLNL", trackFrom: "car-accident-dallas-tx.html" };
+  gtm: "GTM-NK6KTLNL", trackFrom: "car-accident-dallas-tx.html",
+  // CallTrackingMetrics number swap, Arizona only (the firm's snippet, verbatim), at the end of the
+  // body so it doesn't hold up the page
+  callTracking: `<!-- CallTrackingMetrics -->
+<script type="text/javascript" src="//cdn.calltrk.com/companies/977831359/decf00814d0bf9e721cf/12/swap.js"></script>
+<!-- End CallTrackingMetrics -->` };
 const CITY_FIX = { "fort-worth": "Fort Worth", "san-antonio": "San Antonio", mckinney: "McKinney" };
 const titleCase = s => s.replace(/(^|-)([a-z])/g, (_, a, b) => (a ? " " : "") + b.toUpperCase());
 
@@ -355,7 +361,9 @@ function build(p) {
   if (faq.length) graph.push({ "@type": "FAQPage", mainEntity: faq });
   const json = JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c");
   rep("</head>", `<script type="application/ld+json">${json}</script>\n</head>`, "closing head tag");
-  rep("</body>", script(p, display) + "\n</body>", "closing body tag");
+  // call tracking: the control's CallTrackingMetrics block (Texas), or Arizona's own account
+  const ctm = az ? AZ.callTracking : grab(/<!-- CallTrackingMetrics -->[\s\S]*?<!-- End CallTrackingMetrics -->/);
+  rep("</body>", script(p, display) + "\n" + ctm + "\n</body>", "closing body tag");
 
   // nothing the rep marked may survive, and nothing may point nowhere
   for (const bad of ["VERIFY", "PLACEHOLDER", "Legal review", 'class="ph"', "../assets/", 'href="#"', "onsubmit", "hospital room", "home or hospital", "home or the hospital", "TEXAS RESULT", "highest rates per resident"])

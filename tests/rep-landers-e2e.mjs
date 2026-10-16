@@ -10,7 +10,7 @@
 import { chromium } from "playwright";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { allPages, AZ, TITLE_MAX, decode, text } from "../generate-rep-landers.mjs";
 
@@ -70,6 +70,45 @@ const sortKeys = o => JSON.stringify(Object.keys(o).sort().map(k => [k, o[k]]));
 expect("thank-you GTM map matches the landers' containers", "thank-you.html", sortKeys(tyGtm) === sortKeys(geoGtm),
   Object.keys({ ...tyGtm, ...geoGtm }).filter(k => tyGtm[k] !== geoGtm[k]).map(k => `${k}: ${tyGtm[k]} vs ${geoGtm[k]}`).join(", "));
 
+// call tracking: the Texas markets' CallTrackingMetrics account is the "ctm" in the masters' geo
+// data, on every Texas market and no other; Arizona's is the generator's
+const ctmBlock = src => `<!-- CallTrackingMetrics -->\n<script type="text/javascript" src="${src}"></script>\n<!-- End CallTrackingMetrics -->`;
+const ctmSrcs = new Set(), ctmWrong = [];
+for (const m of ["car-accident", "truck-accident", "motorcycle-accident", "rideshare-accident"]) {
+  const geos = JSON.parse(readFileSync(`${ROOT}/${m}.html`, "utf8").match(/<script type="application\/json" id="geo-data">([\s\S]*?)<\/script>/)[1]);
+  for (const [g, v] of Object.entries(geos)) {
+    if (v.ctm) ctmSrcs.add(v.ctm);
+    if (!!v.ctm !== g.endsWith("-tx")) ctmWrong.push(`${m} ${g}`);
+  }
+}
+expect("every Texas market, and no other, has the Texas CallTrackingMetrics account", "geo data", ctmSrcs.size === 1 && !ctmWrong.length, `${[...ctmSrcs]} ${ctmWrong.join(", ")}`);
+const TX_CTM = [...ctmSrcs][0], TX_CTM_ID = (TX_CTM || "").match(/companies\/(\d+)\//)?.[1];
+const AZ_CTM = AZ.callTracking.match(/src="([^"]+)"/)[1], AZ_CTM_ID = AZ_CTM.match(/companies\/(\d+)\//)[1];
+const tyCtm = JSON.parse(readFileSync(`${ROOT}/thank-you.html`, "utf8").match(/var CTM = (\{[\s\S]*?\});/)[1]);
+expect("thank-you call-tracking map matches the landers'", "thank-you.html", tyCtm.tx === TX_CTM && tyCtm.az === AZ_CTM && Object.keys(tyCtm).length === 2, JSON.stringify(tyCtm));
+// every deployable page: Texas pages (baked for a Texas market, or a Texas rep page) carry the Texas
+// block once, Arizona pages Arizona's, every other page none
+{
+  const files = [];
+  const walk = d => { for (const e of readdirSync(`${ROOT}/${d}`, { withFileTypes: true })) {
+    const rel = d ? `${d}/${e.name}` : e.name;
+    if (e.isDirectory()) { if (!/^(rep-landers|tests|node_modules|img|fonts|\..*)$/.test(rel)) walk(rel); }
+    else if (e.name.endsWith(".html")) files.push(rel);
+  } };
+  walk("");
+  const n = { tx: 0, az: 0, none: 0 };
+  for (const f of files) {
+    const html = readFileSync(`${ROOT}/${f}`, "utf8");
+    const rp = PAGES.find(p => `${p.dir}/index.html` === f);
+    const state = rp ? (rp.group === "AZ" ? "az" : "tx") : /data-baked="[a-z-]+-tx"/.test(html) ? "tx" : "none";
+    n[state]++;
+    const blocks = (html.match(/<!-- CallTrackingMetrics -->/g) || []).length;
+    const ok = state === "none" ? blocks === 0 : blocks === 1 && html.includes(state === "az" ? AZ.callTracking : ctmBlock(TX_CTM));
+    expect("site-wide: Texas pages carry the Texas CallTrackingMetrics, Arizona pages Arizona's, no other page any", f, ok, `${state}, ${blocks} block(s)`);
+  }
+  expect("site-wide call-tracking sweep saw 214 Texas and 70 Arizona pages", "-", n.tx === 214 && n.az === 70, JSON.stringify(n));
+}
+
 const seen = { title: new Map(), desc: new Map() };
 
 for (const p of PAGES) {
@@ -87,6 +126,9 @@ for (const p of PAGES) {
   expect("GTM, Clarity and ClickCease exactly as on the control", file, TRACKING.every(re => { const c = ctl.match(re); return c && html.includes(c[0]); }));
   const gtms = [...new Set(html.match(/GTM-[A-Z0-9]+/g))];
   expect("one GTM container: the market's", file, gtms.length === 1 && gtms[0] === (p.control ? geoGtm[p.geo] : AZ.gtm), gtms.join());
+  const ctm = (html.match(/<!-- CallTrackingMetrics -->/g) || []).length;
+  expect("the state's CallTrackingMetrics, once (Texas: as on the control)", file,
+    ctm === 1 && html.includes(p.group === "AZ" ? AZ.callTracking : ctmBlock(TX_CTM)), `${ctm} found`);
 
   // titles short enough not to be cut off; every title and description the page's own
   const title = decode((html.match(/<title>([^<]*)<\/title>/) || [, ""])[1]);
@@ -126,7 +168,7 @@ for (const p of PAGES) {
 // ---- browser
 const browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
 const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type,Accept" };
-let posts = [], formspreeStatus = 200, gtmRequests = [];
+let posts = [], formspreeStatus = 200, gtmRequests = [], ctmRequests = [];
 const newCtx = async width => {
   // non-mobile on purpose: mobile emulation widens the layout viewport and hides overflow
   const ctx = await browser.newContext({ viewport: { width, height: 800 } });
@@ -135,7 +177,12 @@ const newCtx = async width => {
     posts.push(JSON.parse(route.request().postData()));
     return route.fulfill({ status: formspreeStatus, headers: CORS, contentType: "application/json", body: formspreeStatus === 200 ? '{"ok":true}' : '{"error":"x"}' });
   });
-  await ctx.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com/, r => { if (/gtm\.js/.test(r.request().url())) gtmRequests.push(r.request().url()); return r.abort(); });
+  await ctx.route(/googletagmanager\.com|clarity\.ms|buzzfighter\.com|calltrk\.com/, r => {
+    const u = r.request().url();
+    if (/gtm\.js/.test(u)) gtmRequests.push(u);
+    if (/calltrk\.com\/.*\/swap\.js$/.test(u)) ctmRequests.push(u);
+    return r.abort();
+  });
   return ctx;
 };
 // .hero{overflow:hidden} would hide clipping from scrollWidth: check the hero's own boxes
@@ -187,7 +234,7 @@ for (const width of [320, 390]) {
   pg.on("response", r => { if (r.url().startsWith(HOST) && r.status() >= 400) missing.push(r.url()); });
   for (const p of PAGES) {
     const file = p.url;
-    missing.length = 0;
+    missing.length = 0; ctmRequests = [];
     await pg.goto(HOST + p.url);
     await pg.waitForFunction(() => { const i = document.querySelector(".hero-team img"); return i && i.complete; }, null, { timeout: 5000 }).catch(() => {});
     const s = await snapshot(pg);
@@ -200,6 +247,8 @@ for (const width of [320, 390]) {
     expect("partners' photo loads, name tags James M. Loren and George Z. Goldberg", file, s.photo && s.tags.join() === "James M. Loren,George Z. Goldberg", `${s.photo} ${s.tags}`);
     expect("page_variant pushed once, with the group's tag", file, s.dl.length === 1 && s.dl[0] === p.variant, JSON.stringify(s.dl));
     expect("no review note in the rendered text", file, !/VERIFY|PLACEHOLDER|Legal review/.test(s.text));
+    const ctmGot = ctmRequests.map(u => u.match(/companies\/(\d+)\//)[1]).join();
+    expect("loads its state's CallTrackingMetrics number swap", file, ctmGot === (p.group === "AZ" ? AZ_CTM_ID : TX_CTM_ID), ctmGot || "none");
 
     // both forms send a tagged lead and land on the thank-you page
     for (const form of p.kind === "sitelink" ? ["hero"] : ["hero", "bottom"]) {
@@ -228,13 +277,16 @@ for (const width of [320, 390]) {
   const pg = await ctx.newPage();
   const CASES = { "fort-worth-tx": "GTM-NK6KTLNL", "mckinney-tx": "GTM-NK6KTLNL", "boise-id": "GTM-58MTFGGD", "az-tucson-metro": AZ.gtm, az: AZ.gtm,
     "los-angeles-ca": "", "": "" };
+  const CTM_CASES = { "fort-worth-tx": TX_CTM_ID, "mckinney-tx": TX_CTM_ID, "boise-id": "", "az-tucson-metro": AZ_CTM_ID, az: AZ_CTM_ID, "los-angeles-ca": "", "": "" };
   for (const [geo, want] of Object.entries(CASES)) {
-    gtmRequests = [];
+    gtmRequests = []; ctmRequests = [];
     await pg.goto(`${HOST}thank-you.html?geo=${geo}&ct=car-accident&variant=x`);
     await pg.waitForTimeout(150);
     const got = gtmRequests.map(u => new URL(u).searchParams.get("id")).join();
     const conv = await pg.evaluate(() => (window.dataLayer || []).filter(e => e.event === "lead_form_submit").length);
     expect("thank-you page: the market's GTM container (or none), then lead_form_submit", `geo=${geo || "(none)"}`, got === want && conv === 1, `${got || "no container"} want ${want || "none"}, ${conv} events`);
+    const ctmGot = ctmRequests.map(u => u.match(/companies\/(\d+)\//)[1]).join();
+    expect("thank-you page: the state's CallTrackingMetrics number swap (or none)", `geo=${geo || "(none)"}`, ctmGot === CTM_CASES[geo], `${ctmGot || "none"} want ${CTM_CASES[geo] || "none"}`);
   }
   await ctx.close();
 }
