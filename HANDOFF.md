@@ -691,3 +691,40 @@ The build removes the same unverified claims as in Texas: "home or hospital" vis
 - Arizona: phone, responsible attorney, "Texas client" labels, every form's lead tags
 - the thank-you map matches the landers' containers, and the page loads the right container for sample geos
 
+
+## Tennessee and Georgia landers in the rep's Arizona design (2026-10-29)
+131 new pages, built by `generate-rep-landers.mjs` with the Arizona ones. The drafts come from `state-landers.mjs` instead of the rep's files.
+
+| State | Areas | Pages |
+|---|---|---|
+| Tennessee | Nashville, Memphis, Knoxville, Chattanooga, Rutherford County | 52 |
+| Georgia | Atlanta, Cobb, Gwinnett, North Fulton, Augusta, Macon, Savannah, Athens | 79 |
+
+- **Keywords:** each area gets the rep's 9-keyword Arizona set at `/{st}/{area}/{keyword}/`:
+  - auto accident lawyer {city}
+  - car accident attorney {city}
+  - car accident lawyer {city}
+  - car accident lawyer {second city}
+  - semi truck accident lawyer {city}
+  - truck accident lawyer {city}
+  - car accident attorney near me, car accident lawyer near me, truck accident attorney near me
+- **Sitelinks:** 7 per state at `/{st}/{page}/`.
+- **Why these areas:** chosen from search-volume research (OpenSEO, US volumes, 2026-10-29), monthly "car accident lawyer/attorney" searches:
+  - Georgia: Atlanta 6,600, Augusta 1,900, Macon 1,300, Savannah 720, Alpharetta 590, Marietta 480, Athens 390.
+  - Tennessee: Nashville 1,000, Memphis 390, Knoxville 320, Chattanooga 210, Murfreesboro 210.
+  - Clarksville, Kingsport and Hendersonville showed no measurable volume.
+- **Built for Quality Score (ad relevance):**
+  - The H1 is the keyword plus the city, e.g. "Car Accident Attorney in Nashville, TN".
+  - The keyword's case type and the city run through six H2s: the hero form, "Do You Have a Nashville Car Accident Case?", "What to Do After a Car Accident in Nashville", "Car Accidents Our Nashville Attorneys Handle", the closing form and the FAQ.
+  - The title starts with the H1, and every meta description is the page's own.
+  - The tests check that the H1 carries every word of the keyword and that at least 5 H2s name the city.
+- **Same as Arizona:** design, partners' photo, rental-car heading, forms (Formspree, `variant: {st}-{area}-{keyword}`), GTM-NK6KTLNL (the thank-you map has `tn` and `ga`), JSON-LD, and Texas-client review labels.
+- **Responsible attorney (both states require one, with contact information):**
+  - Tennessee: George Z. Goldberg (TN BPR 024218, active).
+  - Georgia: James M. Loren (State Bar of Georgia, active).
+  - Every legal statement cites its statute or case in the footer.
+- **Offices:** the copy doesn't claim or deny a local office. goldbergloren.com lists Knoxville (9111 Cross Park Dr.) and Atlanta (3355 Lenox Rd), but its Georgia page shows Augusta (823 Broad St). Confirm with the firm before adding an address.
+- **PHONE NUMBERS ARE PLACEHOLDERS:** (615) 555-0100 and (404) 555-0100, in the fictional 555-01xx range, so nothing rings.
+  - Set `phone`/`display` in `state-landers.mjs` and re-run `node generate-rep-landers.mjs` and `node build-hub.mjs`.
+  - The build prints a reminder until you do, and the hub marks both states.
+- **No call tracking yet.** Add a `callTracking` snippet per state, as Arizona has.
