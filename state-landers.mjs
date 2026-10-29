@@ -145,7 +145,7 @@ export const STATES = {
       { slug: "macon", name: "Macon", city: "Macon", kw: "macon", second: { name: "Warner Robins", kw: "warner-robins" },
         local: "From I-75, I-16 and I-475, crashes are common across Macon, Warner Robins and Middle Georgia.",
         truckLocal: "I-75 and I-16 meet in Macon, so drivers in Middle Georgia share the road with heavy trucks every day.",
-        report: "the Bibb County Sheriff's Office, city police or the Georgia State Patrol" },
+        report: "the Bibb County Sheriff's Office, the Warner Robins Police Department or the Georgia State Patrol" },
       { slug: "savannah", name: "Savannah", city: "Savannah", kw: "savannah", second: { name: "Pooler", kw: "pooler-ga" },
         local: "From I-16, I-95, the Truman Parkway and US-80, crashes are common across Savannah, Pooler and Chatham County.",
         truckLocal: "Trucks serving the Port of Savannah fill I-16 and I-95, so drivers around Savannah and Pooler share the road with them every day.",
