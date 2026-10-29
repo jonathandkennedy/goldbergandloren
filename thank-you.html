@@ -90,16 +90,18 @@ width="0" height="0" style="display:none"></iframe></noscript>
   var ct = q.get("ct") || "unknown";
   var es = q.get("lang") === "es";
 
-  /* per-market GTM container (the "gtm" keys in the landers' geo data; Arizona pages send
-     geo=az or az-{area}), then the conversion event */
+  /* per-market GTM container (the "gtm" keys in the landers' geo data, and the rep-style state
+     pages' containers: Arizona, Tennessee, Georgia), then the conversion event */
   var GTM = {"portland-or":"GTM-MPL8PDW7","boise-id":"GTM-58MTFGGD","midland-tx":"GTM-MMQN8KKD",
              "austin-tx":"GTM-NK6KTLNL","san-antonio-tx":"GTM-NK6KTLNL","dallas-tx":"GTM-NK6KTLNL",
              "downtown-dallas-tx":"GTM-NK6KTLNL","arlington-tx":"GTM-NK6KTLNL","dallas-fort-worth-tx":"GTM-NK6KTLNL",
              "fort-worth-tx":"GTM-NK6KTLNL","grapevine-tx":"GTM-NK6KTLNL","rockwall-tx":"GTM-NK6KTLNL",
              "frisco-tx":"GTM-NK6KTLNL","plano-tx":"GTM-NK6KTLNL","celina-tx":"GTM-NK6KTLNL",
              "prosper-tx":"GTM-NK6KTLNL","mckinney-tx":"GTM-NK6KTLNL","plantation-fl":"GTM-PGZK4SLB",
-             "az":"GTM-NK6KTLNL"};
-  var gtmId = GTM[geo] || GTM[geo.split("-")[0] === "az" ? "az" : ""];
+             "az":"GTM-NK6KTLNL","tn":"GTM-NK6KTLNL","ga":"GTM-NK6KTLNL"};
+  /* the rep-style state pages send geo={st} or {st}-{area} */
+  var st = geo.split("-")[0];
+  var gtmId = GTM[geo] || (/^(az|tn|ga)$/.test(st) ? GTM[st] : "");
   window.dataLayer = window.dataLayer || [];
   if (gtmId) {
     window.dataLayer.push({ "gtm.start": new Date().getTime(), event: "gtm.js" });

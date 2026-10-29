@@ -1,6 +1,7 @@
 // E2E for the PPC rep's landers: Texas groups D (long, {slug}/) and E (simple, {slug}-simple/),
-// and Arizona (/az/{area}/{keyword}/, sitelinks at /az/{page}/). Each Texas page is checked
-// against its control ({case}-{geo}.html, group A), each Arizona page against the Arizona
+// and the rep-style state pages (/{st}/{area}/{keyword}/, sitelinks at /{st}/{page}/): Arizona
+// from the rep's drafts, Tennessee and Georgia from state-landers.mjs. Each Texas page is checked
+// against its control ({case}-{geo}.html, group A), each state page against its state's
 // settings, and all of them against the promise generate-rep-landers.mjs makes: none of the
 // rep's review notes or unverified claims survive, titles are short and every title and
 // description is the page's own, the schema matches the page, every form sends a tagged lead
@@ -12,7 +13,7 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { allPages, AZ, TITLE_MAX, decode, text } from "../generate-rep-landers.mjs";
+import { allPages, AZ, REP_STATES, TITLE_MAX, decode, text } from "../generate-rep-landers.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url)).replace(/\/$/, "");
 process.chdir(ROOT); // the generator's helpers read rep-landers/ relative to the repo
@@ -38,7 +39,9 @@ const expect = (label, file, ok, detail = "") => {
 };
 
 const PAGES = allPages();
-const TX = PAGES.filter(p => p.group !== "AZ"), AZP = PAGES.filter(p => p.group === "AZ");
+const TX = PAGES.filter(p => !REP_STATES[p.group]), AZP = PAGES.filter(p => p.group === "AZ");
+const NEW = PAGES.filter(p => REP_STATES[p.group] && p.group !== "AZ"); // the states state-landers.mjs drafts
+const ZIP = { AZ: "85701", TN: "37203", GA: "30303" };
 const RENTAL = "Ask Us About Our Rental Car";
 // what the rep marked, and the claims nobody could verify
 const BANNED = [/VERIFY/, /PLACEHOLDER/, /Legal review/, /class="ph"/, /TEXAS RESULT/, /Avvo/, /Super Lawyers/, /Martindale-Hubbell/,
@@ -48,17 +51,17 @@ const TRACKING = [/<!-- Google Tag Manager -->[\s\S]*?<!-- End Google Tag Manage
   /<!-- ClickCease\.com tracking-->[\s\S]*?<!-- ClickCease\.com tracking-->/, /<!-- Google Tag Manager \(noscript\) -->[\s\S]*?<!-- End ClickCease\.com tracking \(noscript\) -->/];
 
 // ---- static: files, sources, hub, markup
-expect("98 pages built (14 × D and E, 70 Arizona)", "-", TX.length === 28 && AZP.length === 70 && PAGES.every(p => existsSync(`${ROOT}/${p.dir}/index.html`)),
+expect(`${PAGES.length} pages built (14 × D and E, 70 Arizona, ${NEW.length} more states)`, "-", TX.length === 28 && AZP.length === 70 && NEW.length > 0 && PAGES.every(p => existsSync(`${ROOT}/${p.dir}/index.html`)),
   PAGES.filter(p => !existsSync(`${ROOT}/${p.dir}/index.html`)).map(p => p.dir).join(", "));
 expect("the rep's review builds never deploy", ".vercelignore", /^rep-landers\/$/m.test(readFileSync(`${ROOT}/.vercelignore`, "utf8")));
 const hub = readFileSync(`${ROOT}/index.html`, "utf8").split("<h2>PPC Rep Landers</h2>")[1]?.split("</section>")[0] || "";
 const hubLinks = [...hub.matchAll(/href="([^"]+)"/g)].map(m => m[1]);
-expect("hub lists every D, E and Arizona page", "index.html", PAGES.every(p => hubLinks.includes(p.url)) && hubLinks.length === 98, `${hubLinks.length} links`);
+expect("hub lists every D, E and state page", "index.html", PAGES.every(p => hubLinks.includes(p.url)) && hubLinks.length === PAGES.length, `${hubLinks.length} links`);
 
 // the thank-you page loads the container each market's landers load (the "gtm" keys in the
 // masters' geo data) and the Arizona pages' container, or none
 const tyGtm = JSON.parse(readFileSync(`${ROOT}/thank-you.html`, "utf8").match(/var GTM = (\{[\s\S]*?\});/)[1]);
-const geoGtm = { az: AZ.gtm };
+const geoGtm = Object.fromEntries(Object.values(REP_STATES).map(st => [st.slug, st.gtm]));
 for (const m of ["car-accident", "truck-accident", "motorcycle-accident", "rideshare-accident"]) {
   const geos = JSON.parse(readFileSync(`${ROOT}/${m}.html`, "utf8").match(/<script type="application\/json" id="geo-data">([\s\S]*?)<\/script>/)[1]);
   for (const [g, v] of Object.entries(geos)) if (v.gtm) {
@@ -100,7 +103,7 @@ expect("thank-you call-tracking map matches the landers'", "thank-you.html", tyC
   for (const f of files) {
     const html = readFileSync(`${ROOT}/${f}`, "utf8");
     const rp = PAGES.find(p => `${p.dir}/index.html` === f);
-    const state = rp ? (rp.group === "AZ" ? "az" : "tx") : /data-baked="[a-z-]+-tx"/.test(html) ? "tx" : "none";
+    const state = rp ? (rp.group === "AZ" ? "az" : REP_STATES[rp.group] ? "none" : "tx") : /data-baked="[a-z-]+-tx"/.test(html) ? "tx" : "none";
     n[state]++;
     const blocks = (html.match(/<!-- CallTrackingMetrics -->/g) || []).length;
     const ok = state === "none" ? blocks === 0 : blocks === 1 && html.includes(state === "az" ? AZ.callTracking : ctmBlock(TX_CTM));
@@ -114,8 +117,9 @@ const seen = { title: new Map(), desc: new Map() };
 for (const p of PAGES) {
   const file = p.url;
   const html = readFileSync(`${ROOT}/${p.dir}/index.html`, "utf8");
-  const ctl = readFileSync(`${ROOT}/${p.control || AZ.trackFrom}`, "utf8");
-  const ctlTel = p.control ? ctl.match(/class="btn btn-teal cta-call js-tel" href="(tel:\+\d+)"/)[1] : `tel:${AZ.phone}`;
+  const st = REP_STATES[p.group];
+  const ctl = readFileSync(`${ROOT}/${p.control || st.trackFrom}`, "utf8");
+  const ctlTel = p.control ? ctl.match(/class="btn btn-teal cta-call js-tel" href="(tel:\+\d+)"/)[1] : `tel:${st.phone}`;
   const left = BANNED.filter(re => re.test(html)).map(String);
   expect("no review note or unverified claim left", file, !left.length, left.join(" "));
   expect("noindex", file, html.includes('<meta name="robots" content="noindex,nofollow">'));
@@ -125,10 +129,11 @@ for (const p of PAGES) {
   // the control's tracking, byte-for-byte (Arizona: the container named in the generator)
   expect("GTM, Clarity and ClickCease exactly as on the control", file, TRACKING.every(re => { const c = ctl.match(re); return c && html.includes(c[0]); }));
   const gtms = [...new Set(html.match(/GTM-[A-Z0-9]+/g))];
-  expect("one GTM container: the market's", file, gtms.length === 1 && gtms[0] === (p.control ? geoGtm[p.geo] : AZ.gtm), gtms.join());
+  expect("one GTM container: the market's", file, gtms.length === 1 && gtms[0] === (p.control ? geoGtm[p.geo] : st.gtm), gtms.join());
   const ctm = (html.match(/<!-- CallTrackingMetrics -->/g) || []).length;
-  expect("the state's CallTrackingMetrics, once (Texas: as on the control)", file,
-    ctm === 1 && html.includes(p.group === "AZ" ? AZ.callTracking : ctmBlock(TX_CTM)), `${ctm} found`);
+  const ctmWant = st ? st.callTracking : ctmBlock(TX_CTM);
+  expect("the state's CallTrackingMetrics, once, or none where the state has no account (Texas: as on the control)", file,
+    ctmWant ? ctm === 1 && html.includes(ctmWant) : ctm === 0, `${ctm} found`);
 
   // titles short enough not to be cut off; every title and description the page's own
   const title = decode((html.match(/<title>([^<]*)<\/title>/) || [, ""])[1]);
@@ -152,10 +157,21 @@ for (const p of PAGES) {
     JSON.stringify(shown) === JSON.stringify(marked) && (!shown.length || !!faq), `${shown.length} shown, ${marked.length} marked up`);
   expect("schema carries no review note", file, !/VERIFY|PLACEHOLDER/.test(lds[0]?.[1] || ""));
 
-  if (p.group === "AZ") {
-    expect("Arizona: attorney responsible for the ad named", file, html.includes(`Attorney responsible for this advertisement: ${AZ.attorney}.`));
+  if (st) {
+    expect("state pages: attorney responsible for the ad named", file, html.includes(`Attorney responsible for this advertisement: ${st.attorney}.`));
     const labels = (html.match(/ · Texas client<\/small>/g) || []).length;
-    expect("Arizona: every review labelled as a Texas client's", file, (p.kind === "sitelink" || labels === 3) && !html.includes("· Client review<"), `${labels} labels`);
+    expect("state pages: every review labelled as a Texas client's", file, (p.kind === "sitelink" || labels === 3) && !html.includes("· Client review<"), `${labels} labels`);
+  }
+  // ad relevance: the keyword in the headline, the city in the section headings
+  if (st && p.group !== "AZ" && p.kind === "keyword") {
+    const h1 = text((html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/) || [, ""])[1]);
+    const norm = s => s.toLowerCase().replace(/[^a-z ]+/g, " ").replace(/\s+/g, " ");
+    const missing = p.keyword.split("-").filter(w => !norm(h1).split(" ").includes(w));
+    expect("new states: the H1 carries every word of the page's keyword", file, !missing.length, `${h1} lacks ${missing}`);
+    const city = h1.match(/ in ([^,]+), [A-Z]{2}$/)?.[1];
+    const h2s = [...html.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/g)].map(m => text(m[1]));
+    const withCity = h2s.filter(h => city && h.includes(city)).length;
+    expect("new states: the city in at least 5 H2s, the H1 in the title", file, withCity >= 5 && decode((html.match(/<title>([^<]*)/) || [, ""])[1]).startsWith(h1), `${withCity} of ${h2s.length} H2s name ${city}`);
   }
   const rel = [...html.matchAll(/href="(\.\.\/[^"#]+)"/g)].map(m => m[1]).filter(h => !existsSync(`${ROOT}/${p.dir}/${h}index.html`));
   expect("links to other rep pages resolve", file, !rel.length, rel.join(", "));
@@ -209,7 +225,7 @@ const snapshot = pg => pg.evaluate(() => {
   };
 });
 const PHONE = "(214) 555-0147";
-const zipFor = p => p.group === "AZ" ? "85701" : "75201";
+const zipFor = p => ZIP[p.group] || "75201";
 async function submit(pg, p, form) {
   if (p.design === "long" && form === "hero") {
     await pg.click('#case-form label.opt:nth-child(2)');
@@ -248,7 +264,7 @@ for (const width of [320, 390]) {
     expect("page_variant pushed once, with the group's tag", file, s.dl.length === 1 && s.dl[0] === p.variant, JSON.stringify(s.dl));
     expect("no review note in the rendered text", file, !/VERIFY|PLACEHOLDER|Legal review/.test(s.text));
     const ctmGot = ctmRequests.map(u => u.match(/companies\/(\d+)\//)[1]).join();
-    expect("loads its state's CallTrackingMetrics number swap", file, ctmGot === (p.group === "AZ" ? AZ_CTM_ID : TX_CTM_ID), ctmGot || "none");
+    expect("loads its state's CallTrackingMetrics number swap (or none)", file, ctmGot === (p.group === "AZ" ? AZ_CTM_ID : REP_STATES[p.group] ? "" : TX_CTM_ID), ctmGot || "none");
 
     // both forms send a tagged lead and land on the thank-you page
     for (const form of p.kind === "sitelink" ? ["hero"] : ["hero", "bottom"]) {
@@ -276,8 +292,9 @@ for (const width of [320, 390]) {
   const ctx = await newCtx(390);
   const pg = await ctx.newPage();
   const CASES = { "fort-worth-tx": "GTM-NK6KTLNL", "mckinney-tx": "GTM-NK6KTLNL", "boise-id": "GTM-58MTFGGD", "az-tucson-metro": AZ.gtm, az: AZ.gtm,
+    "tn-nashville": REP_STATES.TN.gtm, ga: REP_STATES.GA.gtm,
     "los-angeles-ca": "", "": "" };
-  const CTM_CASES = { "fort-worth-tx": TX_CTM_ID, "mckinney-tx": TX_CTM_ID, "boise-id": "", "az-tucson-metro": AZ_CTM_ID, az: AZ_CTM_ID, "los-angeles-ca": "", "": "" };
+  const CTM_CASES = { "fort-worth-tx": TX_CTM_ID, "mckinney-tx": TX_CTM_ID, "boise-id": "", "az-tucson-metro": AZ_CTM_ID, az: AZ_CTM_ID, "tn-nashville": "", ga: "", "los-angeles-ca": "", "": "" };
   for (const [geo, want] of Object.entries(CASES)) {
     gtmRequests = []; ctmRequests = [];
     await pg.goto(`${HOST}thank-you.html?geo=${geo}&ct=car-accident&variant=x`);
@@ -295,7 +312,7 @@ for (const width of [320, 390]) {
 {
   const ctx = await newCtx(390);
   const pg = await ctx.newPage();
-  for (const p of PAGES.filter(p => p.slug === "car-accident-lawyer-dallas-tx" || p.variant === "az-tucson-metro-car-accident-lawyer-tucson")) {
+  for (const p of PAGES.filter(p => p.slug === "car-accident-lawyer-dallas-tx" || p.variant === "az-tucson-metro-car-accident-lawyer-tucson" || p.variant === "tn-nashville-car-accident-lawyer-nashville")) {
     const file = p.url;
     posts = [];
     await pg.goto(HOST + p.url);
@@ -315,7 +332,7 @@ for (const width of [320, 390]) {
     const fail = await pg.evaluate(() => [document.querySelector("#case-form .ferr").textContent, document.querySelector('#case-form button[type="submit"]').disabled, location.pathname]);
     formspreeStatus = 200;
     expect("failed send: says so, offers the phone number, keeps the visitor on the page", file,
-      fail[0].includes(p.group === "AZ" ? AZ.display : "(214) 466-2129") && !fail[1] && !fail[2].includes("thank-you"), JSON.stringify(fail));
+      fail[0].includes(REP_STATES[p.group]?.display || "(214) 466-2129") && !fail[1] && !fail[2].includes("thank-you"), JSON.stringify(fail));
   }
   await ctx.close();
 }
@@ -331,6 +348,6 @@ for (const [label, r] of results) {
   for (const b of r.bad.slice(0, 6)) console.log(`     ${b}`);
   if (r.bad.length > 6) console.log(`     …and ${r.bad.length - 6} more`);
 }
-console.log(`\n${PAGES.length} PPC rep pages (Texas groups D and E, Arizona), at 320 and 390px, every form on each, in ${secs}s`);
+console.log(`\n${PAGES.length} PPC rep pages (Texas groups D and E, ${Object.values(REP_STATES).map(st => st.name).join(", ")}), at 320 and 390px, every form on each, in ${secs}s`);
 console.log(failures ? `${failures} FAILING CHECK(S)` : "ALL PASS");
 process.exit(failures ? 1 : 0);
