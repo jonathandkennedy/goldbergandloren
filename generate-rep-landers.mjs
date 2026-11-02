@@ -45,6 +45,7 @@
  * new version: re-check by hand).
  */
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync, statSync } from "node:fs";
+import { STATES, statePages } from "./state-landers.mjs";
 
 const SRC = "rep-landers";
 const BASE = "https://results.goldbergloren.com/";
@@ -54,13 +55,16 @@ export const GROUPS = {
 };
 // Arizona has no live lander of its own: its tracking is copied from the Dallas lander, i.e. the
 // GTM container the rep's Texas pages use (one constant to change if AZ gets its own container)
-export const AZ = { phone: "+15203762425", display: "(520) 376-2425", attorney: "James M. Loren",
+export const AZ = { abbr: "AZ", name: "Arizona", slug: "az", phone: "+15203762425", display: "(520) 376-2425", attorney: "James M. Loren",
   gtm: "GTM-NK6KTLNL", trackFrom: "car-accident-dallas-tx.html",
   // CallTrackingMetrics number swap, Arizona only (the firm's snippet, verbatim), at the end of the
   // body so it doesn't hold up the page
   callTracking: `<!-- CallTrackingMetrics -->
 <script type="text/javascript" src="//cdn.calltrk.com/companies/977831359/decf00814d0bf9e721cf/12/swap.js"></script>
 <!-- End CallTrackingMetrics -->` };
+// every state the rep-style keyword pages cover: Arizona from the rep's drafts, the rest from
+// state-landers.mjs, built in the same design by the same steps
+export const REP_STATES = { AZ, ...STATES };
 const CITY_FIX = { "fort-worth": "Fort Worth", "san-antonio": "San Antonio", mckinney: "McKinney" };
 const titleCase = s => s.replace(/(^|-)([a-z])/g, (_, a, b) => (a ? " " : "") + b.toUpperCase());
 
@@ -94,12 +98,12 @@ export function azPages() {
   // the keyword pages by area, then the sitelinks
   return out.sort((a, b) => (a.kind === "sitelink") - (b.kind === "sitelink")).map(p => ({ ...p, url: `${p.dir}/`, design: "simple" }));
 }
-// every page this script builds, Texas then Arizona
+// every page this script builds: Texas, Arizona, then the states state-landers.mjs drafts
 export function allPages() {
   const tx = slugs().map(parse).flatMap(p => ["D", "E"].map(group => ({ ...p, group, design: group === "D" ? "long" : "simple",
     src: `${SRC}/${GROUPS[group].dir}/${p.slug}.html`, dir: pageDir(group, p.slug), url: pageUrl(group, p.slug),
     variant: `${p.city}-${GROUPS[group].tag}`, control: `${p.cs}-${p.geo}.html` })));
-  return [...tx, ...azPages()];
+  return [...tx, ...azPages(), ...statePages()];
 }
 
 const PARTNERS = `<picture><img src="/img/partners-720.webp" srcset="/img/partners-480.webp 480w, /img/partners-720.webp 720w, /img/partners-960.webp 960w" sizes="(min-width: 960px) 440px, calc(100vw - 40px)" width="960" height="624" alt="James M. Loren and George Z. Goldberg, partners of Goldberg &amp; Loren" fetchpriority="high"></picture>`;
@@ -240,9 +244,10 @@ let azLegalCache;
 const azLegal = () => azLegalCache ??= legalService(readFileSync(azPages().find(x => x.kind === "keyword").src, "utf8"));
 
 function build(p) {
-  const ref = p.control || AZ.trackFrom;
+  const st = REP_STATES[p.group]; // the state settings for a rep-style keyword page
+  const ref = p.control || st.trackFrom;
   const ctl = readFileSync(ref, "utf8");
-  let html = readFileSync(p.src, "utf8");
+  let html = p.draft ? p.draft() : readFileSync(p.src, "utf8");
   const errs = [];
   const count = (s, f) => typeof f === "string" ? s.split(f).length - 1 : (s.match(new RegExp(f.source, "g")) || []).length;
   // replace exactly n (default 1) occurrences, "+" for one or more, "*" for any (page-specific), or record the drift
@@ -259,26 +264,26 @@ function build(p) {
   const grab = (re, s = ctl) => (s.match(re) || [])[0] || (errs.push(`${ref}: missing ${re}`), "");
   const az = p.group === "AZ", sitelink = p.kind === "sitelink";
 
-  // the live lander's tracking, verbatim (for Arizona, the container named in AZ)
+  // the live lander's tracking, verbatim (for a state's keyword pages, the container its settings name)
   const trackHead = [/<!-- Google Tag Manager -->[\s\S]*?<!-- End Google Tag Manager -->/, /<!-- Microsoft Clarity -->[\s\S]*?<!-- End Microsoft Clarity -->/,
     /<!-- ClickCease\.com tracking-->[\s\S]*?<!-- ClickCease\.com tracking-->/].map(re => grab(re)).join("\n");
   const trackBody = grab(/<!-- Google Tag Manager \(noscript\) -->[\s\S]*?<!-- End ClickCease\.com tracking \(noscript\) -->/);
-  if (az && [...new Set((trackHead + trackBody).match(/GTM-[A-Z0-9]+/g))].join() !== AZ.gtm) errs.push(`${ref}: tracking is not ${AZ.gtm}`);
-  const tel = az ? AZ.phone : (ctl.match(/class="btn btn-teal cta-call js-tel" href="tel:(\+\d+)"/) || [])[1];
-  const display = az ? AZ.display : (ctl.match(/<span class="js-tel-text">([^<]+)<\/span>/) || [])[1];
+  if (st && [...new Set((trackHead + trackBody).match(/GTM-[A-Z0-9]+/g))].join() !== st.gtm) errs.push(`${ref}: tracking is not ${st.gtm}`);
+  const tel = st ? st.phone : (ctl.match(/class="btn btn-teal cta-call js-tel" href="tel:(\+\d+)"/) || [])[1];
+  const display = st ? st.display : (ctl.match(/<span class="js-tel-text">([^<]+)<\/span>/) || [])[1];
   const tels = [...new Set([...html.matchAll(/href="tel:(\+?\d+)"/g)].map(m => m[1]))];
   if (!tel || tels.length !== 1 || tels[0] !== tel) errs.push(`phone ${tels} differs from the expected ${tel}`);
 
   // the rep's review scaffolding; the LegalService block is kept for the rebuilt JSON-LD
-  rep(/<!-- (?:Generated review build|Simple form-first variant|AZ (?:SKAG|sitelink) page)[\s\S]*?-->\n?/, "", "review-build comment");
-  const legal = sitelink ? azLegal() : legalService(html);
+  rep(/<!-- (?:Generated review build|Simple form-first variant|[A-Z]{2} (?:SKAG|sitelink) page)[\s\S]*?-->\n?/, "", "review-build comment");
+  const legal = az && sitelink ? azLegal() : legalService(html);
   if (!legal) errs.push("no LegalService block in the rep's JSON-LD");
-  rep(LD, "", "JSON-LD block (rebuilt below from the cleaned page)", sitelink ? 0 : 1);
+  rep(LD, "", "JSON-LD block (rebuilt below from the cleaned page)", az && sitelink ? 0 : 1);
   rep('<meta charset="utf-8">', '<meta charset="utf-8">\n' + trackHead, "charset meta");
   rep(/<body>\n?/, "<body>\n" + trackBody + "\n", "body tag");
 
   // claims the rep flagged as unverified
-  rep(/by phone, video,? (and|or)(?: in person)?(?: at)? home or (?:the )?hospital(?: visits)?/, "by phone $1 video", "home/hospital visit claim", sitelink ? "*" : "+");
+  rep(/by phone, video,? (and|or)(?: in person)?(?: at)? home or (?:the )?hospital(?: visits)?/, "by phone $1 video", "home/hospital visit claim", az && !sitelink ? "+" : "*");
   if (p.design === "long") {
     rep(", and can come to your home or hospital room", "", "hospital-room claim", "*");
     removeEl('<div class="badges">', "review-site badge row");
@@ -291,7 +296,7 @@ function build(p) {
     rep('<img src="../assets/george-goldberg.jpg" width="300" height="401"', '<img src="/img/george-goldberg.jpg" width="600" height="802"', "George Goldberg photo");
     rep("<span>Attorney-client confidential</span>", "<span>Confidential</span>", "attorney-client claim (a form isn't privileged)");
   } else {
-    removeEl('<div class="badges"><span class="ph">', "badge/stat note", sitelink ? "*" : 1);
+    removeEl('<div class="badges"><span class="ph">', "badge/stat note", az && !sitelink ? 1 : "*");
   }
   if (az) {
     // the attorney the firm named, where the rep left a blank (one wording on every page)
@@ -300,9 +305,9 @@ function build(p) {
     rep('<span class="ph">VERIFY Arizona-licensed responsible attorney</span>', AZ.attorney, "responsible-attorney line");
     rep(/<span class="ph">VERIFY: (?:name the Arizona-licensed attorney responsible for AZ cases|Arizona-licensed attorney\(s\), bar admissions and ER 7\.1–7\.3 compliance)<\/span>/,
       `Arizona cases are handled by attorney ${AZ.attorney}.`, "who handles Arizona cases", sitelink ? "*" : "+");
-    rep(/ · Client review<\/small>/, " · Texas client</small>", "review labels (the reviews are from Texas clients)", sitelink ? "*" : 3);
     rep(", among the highest rates per resident in Arizona", "", "Yuma per-resident claim (not in ADOT's report)", "*");
   }
+  if (st) rep(/ · Client review<\/small>/, " · Texas client</small>", "review labels (the reviews are from Texas clients)", sitelink ? "*" : 3);
   // every remaining note, then the empty paragraphs they leave
   html = html.replace(/ ?<span class="ph"[^>]*>[^<]*<\/span>/g, "").replace(/<p(?: class="disc")?>\s*<\/p>\n?/g, "");
 
@@ -346,8 +351,8 @@ function build(p) {
     const kind = p.cs === "truck-accident" ? "truck" : "car";
     desc = `Hurt in a ${p.cityName} ${kind} crash? Talk to a Goldberg & Loren ${kind} accident lawyer, free and 24/7. No fee unless we win. Takes about a minute.`;
   } else {
-    // a near-me keyword's headline doesn't name the area; the title has to, or the seven areas share it
-    const base = /near-me$/.test(p.keyword) ? `${h1} | ${p.areaName}, AZ` : h1;
+    // an Arizona near-me headline doesn't name the area; the title has to, or the seven areas share it
+    const base = az && /near-me$/.test(p.keyword) ? `${h1} | ${p.areaName}, AZ` : h1;
     title = fit(TAILS.map(t => base + t));
   }
   if (title.length > TITLE_MAX) errs.push(`title "${title}" is ${title.length} characters`);
@@ -361,15 +366,15 @@ function build(p) {
   if (faq.length) graph.push({ "@type": "FAQPage", mainEntity: faq });
   const json = JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c");
   rep("</head>", `<script type="application/ld+json">${json}</script>\n</head>`, "closing head tag");
-  // call tracking: the control's CallTrackingMetrics block (Texas), or Arizona's own account
-  const ctm = az ? AZ.callTracking : grab(/<!-- CallTrackingMetrics -->[\s\S]*?<!-- End CallTrackingMetrics -->/);
-  rep("</body>", script(p, display) + "\n" + ctm + "\n</body>", "closing body tag");
+  // call tracking: the control's CallTrackingMetrics block (Texas), or the state's own account, if it has one
+  const ctm = st ? st.callTracking : grab(/<!-- CallTrackingMetrics -->[\s\S]*?<!-- End CallTrackingMetrics -->/);
+  rep("</body>", script(p, display) + (ctm ? "\n" + ctm : "") + "\n</body>", "closing body tag");
 
   // nothing the rep marked may survive, and nothing may point nowhere
   for (const bad of ["VERIFY", "PLACEHOLDER", "Legal review", 'class="ph"', "../assets/", 'href="#"', "onsubmit", "hospital room", "home or hospital", "home or the hospital", "TEXAS RESULT", "highest rates per resident"])
     if (html.includes(bad)) errs.push(`still contains "${bad}"`);
   if (!html.includes('<meta name="robots" content="noindex,nofollow">')) errs.push("not noindex");
-  if (az && !html.includes(`Attorney responsible for this advertisement: ${AZ.attorney}`)) errs.push("no responsible attorney");
+  if (st && !html.includes(`Attorney responsible for this advertisement: ${st.attorney}`)) errs.push("no responsible attorney");
 
   const out = `${p.dir}/index.html`;
   if (errs.length) { console.error(`${out}:\n  ` + errs.join("\n  ")); return null; }
@@ -404,7 +409,19 @@ Attorney responsible for the ads: ${AZ.attorney}. GTM container: ${AZ.gtm}.
 | Area | Keyword | URL | Lead tag |
 |---|---|---|---|
 ${az.join("\n")}
-`;
+${Object.entries(STATES).map(([g, S]) => `
+## ${S.name}: one page per keyword (the rep's Arizona design, drafted by state-landers.mjs)
+
+Calls go to ${S.display}${S.phonePlaceholder ? " — **a placeholder: replace it in state-landers.mjs before the ads run**" : ""}; leads carry the
+variant below (and \`geo: ${S.slug}-{area}\`, or \`${S.slug}\` on a sitelink). Attorney responsible for the ads:
+${S.attorney}. GTM container: ${S.gtm}.${S.callTracking ? "" : " No call tracking yet."}
+
+| Area | Keyword | URL | Lead tag |
+|---|---|---|---|
+${pages.filter(p => p.group === g).map(p => p.kind === "keyword"
+    ? `| ${p.areaName} | ${p.keyword.replace(/-/g, " ")} | ${BASE}${p.url} | \`${p.variant}\` |`
+    : `| Sitelink | ${p.page.replace(/-/g, " ")} | ${BASE}${p.url} | \`${p.variant}\` |`).join("\n")}
+`).join("")}`;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
@@ -423,5 +440,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (failed) { console.error(`${failed} problem(s); fix them before publishing`); process.exit(1); }
   writeFileSync("CAMPAIGN-URLS-PPC-REP.md", urlTable(pages));
   const n = g => pages.filter(p => p.group === g).length;
-  console.log(`built ${pages.length} PPC rep landers (Texas: ${n("D")} D + ${n("E")} E; Arizona: ${n("AZ")}); no review notes left; titles ≤${TITLE_MAX} characters and unique; CAMPAIGN-URLS-PPC-REP.md updated`);
+  console.log(`built ${pages.length} PPC rep landers (Texas: ${n("D")} D + ${n("E")} E; ${Object.entries(REP_STATES).map(([g, S]) => `${S.name}: ${n(g)}`).join("; ")}); no review notes left; titles ≤${TITLE_MAX} characters and unique; CAMPAIGN-URLS-PPC-REP.md updated`);
+  for (const S of Object.values(REP_STATES)) if (S.phonePlaceholder) console.warn(`NOTE: ${S.name}'s phone number ${S.display} is a placeholder; set the real one in state-landers.mjs before the ads run`);
 }
