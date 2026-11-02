@@ -726,7 +726,5 @@ The build removes the same unverified claims as in Texas: "home or hospital" vis
   - Georgia: James M. Loren (State Bar of Georgia, active).
   - Every legal statement cites its statute or case in the footer.
 - **Offices:** the copy doesn't claim or deny a local office. goldbergloren.com lists Knoxville (9111 Cross Park Dr.) and Atlanta (3355 Lenox Rd), but its Georgia page shows Augusta (823 Broad St). Confirm with the firm before adding an address.
-- **PHONE NUMBERS ARE PLACEHOLDERS:** (615) 555-0100 and (404) 555-0100, in the fictional 555-01xx range, so nothing rings.
-  - Set `phone`/`display` in `state-landers.mjs` and re-run `node generate-rep-landers.mjs` and `node build-hub.mjs`.
-  - The build prints a reminder until you do, and the hub marks both states.
+- **Phone numbers (2026-11-02):** Tennessee (615) 880-6348, Georgia (404) 795-7921. Each is set as `phone`/`display` in `state-landers.mjs`; to change one, edit both and re-run `node generate-rep-landers.mjs` and `node build-hub.mjs`. Add each number to its state's swap list in CallTrackingMetrics so the script can replace it with a tracking number.
 - **Call tracking (2026-11-02):** each state has its own CallTrackingMetrics account, set as `callTracking` in `state-landers.mjs`. Tennessee is company 664639969 and Georgia is 518532685. The thank-you page loads the matching one for leads from each state.
