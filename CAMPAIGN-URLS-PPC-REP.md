@@ -104,7 +104,7 @@ Attorney responsible for the ads: James M. Loren. GTM container: GTM-NK6KTLNL.
 
 ## Tennessee: one page per keyword (the rep's Arizona design, drafted by state-landers.mjs)
 
-Calls go to (615) 555-0100 — **a placeholder: replace it in state-landers.mjs before the ads run**; leads carry the
+Calls go to (615) 880-6348; leads carry the
 variant below (and `geo: tn-{area}`, or `tn` on a sitelink). Attorney responsible for the ads:
 George Z. Goldberg. GTM container: GTM-NK6KTLNL.
 
@@ -165,7 +165,7 @@ George Z. Goldberg. GTM container: GTM-NK6KTLNL.
 
 ## Georgia: one page per keyword (the rep's Arizona design, drafted by state-landers.mjs)
 
-Calls go to (404) 555-0100 — **a placeholder: replace it in state-landers.mjs before the ads run**; leads carry the
+Calls go to (404) 795-7921; leads carry the
 variant below (and `geo: ga-{area}`, or `ga` on a sitelink). Attorney responsible for the ads:
 James M. Loren. GTM container: GTM-NK6KTLNL.
 

@@ -12,8 +12,9 @@
  * Areas and keywords come from search-volume research (CAMPAIGN-URLS-PPC-REP.md lists them).
  *
  * Every legal statement cites the statute or case it rests on, and every figure its official
- * source (each page's footer lists them). PHONE: placeholder numbers in the fictional 555-01xx
- * range until the firm assigns real ones; change `phone` and `display` below and rebuild.
+ * source (each page's footer lists them). Each state's phone number is `phone`/`display` below;
+ * a new one means changing both and rebuilding, then adding it to the state's CallTrackingMetrics
+ * swap list.
  */
 import { readFileSync } from "node:fs";
 
@@ -31,8 +32,7 @@ const first = s => s[0].toUpperCase() + s.slice(1);
 export const STATES = {
   TN: {
     abbr: "TN", name: "Tennessee", slug: "tn",
-    // PLACEHOLDER until the firm assigns a Tennessee number (555-0100 is reserved for fiction)
-    phone: "+16155550100", display: "(615) 555-0100", phonePlaceholder: true,
+    phone: "+16158806348", display: "(615) 880-6348",
     // licensed in Tennessee (Board of Professional Responsibility no. 024218)
     attorney: "George Z. Goldberg",
     gtm: "GTM-NK6KTLNL", trackFrom: "car-accident-dallas-tx.html",
@@ -96,7 +96,7 @@ export const STATES = {
   },
   GA: {
     abbr: "GA", name: "Georgia", slug: "ga",
-    phone: "+14045550100", display: "(404) 555-0100", phonePlaceholder: true,
+    phone: "+14047957921", display: "(404) 795-7921",
     // licensed in Georgia (State Bar of Georgia, admitted 2010), as on the Arizona pages
     attorney: "James M. Loren",
     gtm: "GTM-NK6KTLNL", trackFrom: "car-accident-dallas-tx.html",
