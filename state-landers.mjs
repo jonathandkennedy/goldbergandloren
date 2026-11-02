@@ -67,6 +67,12 @@ export const STATES = {
       },
     },
     areas: [
+      // statewide: the "near me" and statewide ad groups, for searches that name no city
+      { slug: "statewide", name: "Statewide", city: "Tennessee", kw: "tennessee", statewide: true,
+        local: "From I-40, I-24, I-65, I-75 and I-81, crashes happen across Tennessee every day, in cities and on rural highways.",
+        truckLocal: "I-40 crosses Tennessee from Memphis to the North Carolina line, and I-24, I-65, I-75 and I-81 carry freight through Nashville, Chattanooga and Knoxville, so drivers share the road with heavy trucks every day.",
+        report: "city police, the county sheriff or the Tennessee Highway Patrol",
+        stat: "State crash data counts 44,079 injury crashes across Tennessee in 2025 (preliminary)." },
       { slug: "nashville", name: "Nashville", city: "Nashville", kw: "nashville", second: { name: "Franklin", kw: "franklin-tn" },
         local: "From I-40, I-24, I-65, I-440 and Briley Parkway, crashes are common across Nashville, Davidson County and Franklin.",
         truckLocal: "I-40, I-24 and I-65 meet in Nashville, so drivers on the interstates and Briley Parkway share the road with heavy trucks every day.",
@@ -130,6 +136,13 @@ export const STATES = {
       },
     },
     areas: [
+      // statewide: the "near me" and statewide ad groups, for searches that name no city
+      { slug: "statewide", name: "Statewide", city: "Georgia", kw: "georgia", statewide: true,
+        local: "From I-75, I-85, I-20, I-16 and I-95, crashes happen across Georgia every day, in metro Atlanta and on rural highways.",
+        truckLocal: "I-75, I-85, I-20, I-16 and I-95 carry freight across Georgia, from metro Atlanta to the Port of Savannah, so drivers share the road with heavy trucks every day.",
+        report: "city or county police, the sheriff or the Georgia State Patrol",
+        stat: "Georgia's Governor's Office of Highway Safety counts 371,130 police-reported crashes and 1,403 traffic deaths in the state in 2024.",
+        statSource: `Georgia Governor's Office of Highway Safety, Georgia Traffic Safety Facts: Overview of Motor Vehicle Crashes in 2024 (October 2026): <a href="https://www.gahighwaysafety.org/wp-content/uploads/2026/10/2024-Overview-of-Motor-Vehicle-Crashes.pdf" rel="nofollow noopener">gahighwaysafety.org (PDF)</a>` },
       { slug: "atlanta", name: "Atlanta", city: "Atlanta", kw: "atlanta", second: { name: "Decatur", kw: "decatur-ga" },
         local: "From I-75, I-85, I-20, I-285, GA-400 and the Downtown Connector, crashes are common across Atlanta, Decatur and the metro area.",
         truckLocal: "I-75, I-85 and I-20 meet in Atlanta and I-285 rings it, so drivers here share the road with heavy trucks every day.",
@@ -158,7 +171,7 @@ export const STATES = {
         local: "From I-16, I-95, the Truman Parkway and US-80, crashes are common across Savannah, Pooler and Chatham County.",
         truckLocal: "Trucks serving the Port of Savannah fill I-16 and I-95, so drivers around Savannah and Pooler share the road with them every day.",
         report: "the Savannah Police Department, the Chatham County Police Department or the Georgia State Patrol" },
-      { slug: "athens", name: "Athens", city: "Athens", kw: "athens-ga", second: { name: "Watkinsville", kw: "watkinsville" },
+      { slug: "athens", name: "Athens", city: "Athens", kw: "athens", second: { name: "Watkinsville", kw: "watkinsville" },
         local: "From the Athens Perimeter (Loop 10), US-78, US-441 and GA-316, crashes are common across Athens, Clarke County and Watkinsville.",
         truckLocal: "GA-316 and US-441 carry trucks through Athens, so drivers on the Perimeter share the road with them every day.",
         report: "the Athens-Clarke County Police Department or the Georgia State Patrol" },
@@ -167,7 +180,17 @@ export const STATES = {
 };
 
 // the rep's Arizona keyword set, per area: the city, the secondary city, and near-me
-const keywords = a => [
+const keywords = a => a.statewide ? [
+  { keyword: `auto-accident-lawyer-${a.kw}`, noun: "auto accident", who: "lawyer" },
+  { keyword: `car-accident-attorney-${a.kw}`, noun: "car accident", who: "attorney" },
+  { keyword: "car-accident-attorney-near-me", noun: "car accident", who: "attorney", near: true },
+  { keyword: `car-accident-lawyer-${a.kw}`, noun: "car accident", who: "lawyer" },
+  { keyword: "car-accident-lawyer-near-me", noun: "car accident", who: "lawyer", near: true },
+  { keyword: `semi-truck-accident-lawyer-${a.kw}`, noun: "semi-truck accident", who: "lawyer", truck: true },
+  { keyword: `truck-accident-attorney-${a.kw}`, noun: "truck accident", who: "attorney", truck: true },
+  { keyword: "truck-accident-attorney-near-me", noun: "truck accident", who: "attorney", truck: true, near: true },
+  { keyword: `truck-accident-lawyer-${a.kw}`, noun: "truck accident", who: "lawyer", truck: true },
+] : [
   { keyword: `auto-accident-lawyer-${a.kw}`, noun: "auto accident", who: "lawyer" },
   { keyword: `car-accident-attorney-${a.kw}`, noun: "car accident", who: "attorney" },
   { keyword: "car-accident-attorney-near-me", noun: "car accident", who: "attorney", near: true },
@@ -178,6 +201,11 @@ const keywords = a => [
   { keyword: "truck-accident-attorney-near-me", noun: "truck accident", who: "attorney", truck: true, near: true },
   { keyword: `truck-accident-lawyer-${a.kw}`, noun: "truck accident", who: "lawyer", truck: true },
 ];
+// pages that moved keep their old URL as a redirect (query string and hash carried across, so
+// an ad's gclid and the call-tracking session survive): old dir → new dir
+export const RENAMED = Object.fromEntries(["auto-accident-lawyer", "car-accident-attorney", "car-accident-lawyer",
+  "semi-truck-accident-lawyer", "truck-accident-lawyer"].map(k => [`ga/athens/${k}-athens-ga`, `ga/athens/${k}-athens`]));
+
 const SITELINKS = ["about-goldberg-loren", "{state}-car-accident-faqs", "free-case-review", "injuries-we-handle",
   "no-fee-unless-we-win", "truck-accident-claims", "what-to-do-after-a-crash"];
 
@@ -273,7 +301,8 @@ const FEDERAL = {
 function keywordDraft(S, a, k, url) {
   const L = S.law, depth = "../../";
   const city = k.second ? a.second.name : a.city;
-  const where = `${city}, ${S.abbr}`;
+  const where = a.statewide ? S.name : `${city}, ${S.abbr}`;
+  const clients = a.statewide ? `clients across ${S.name}` : `${a.city}-area clients`;
   const Noun = cap(k.noun), Who = cap(k.who), kw = `${k.noun} ${k.who}`;
   const h1 = k.near ? `${Noun} ${Who} Near Me in ${where}` : `${Noun} ${Who} in ${where}`;
   const crash = k.truck ? "truck crash" : k.noun;
@@ -281,7 +310,7 @@ function keywordDraft(S, a, k, url) {
     ? `Looking for ${an(kw)} near you in ${where}? Talk to Goldberg &amp; Loren free, by phone or video, 24/7. No fee unless we win.`
     : `Hurt in ${an(crash)} in ${where}? ${first(an(kw))} at Goldberg &amp; Loren can take on the insurer for you. Free review, no fee unless we win. Call 24/7.`;
   const sub = k.near
-    ? `Looking for ${an(kw)} near you? You don't need to drive to an office: we meet ${a.city}-area clients by phone or video, 24/7.`
+    ? `Looking for ${an(kw)} near you? You don't need to drive to an office: we meet ${clients} by phone or video, 24/7.`
     : `Hurt in ${an(crash)} in ${where}? Talk to a Goldberg &amp; Loren ${kw} today. Free, 24/7.`;
   const local = `${k.truck ? a.truckLocal : a.local}${a.stat ? " " + a.stat + "{s1}" : ""}`;
   const steps = k.truck
@@ -295,8 +324,8 @@ function keywordDraft(S, a, k, url) {
     ? ["Jackknife crashes", "Rollovers", "Underride collisions", "Rear-ended by a semi", "Wide-turn &amp; blind-spot crashes", "Tire blowouts &amp; brake failure", "Unsecured or shifting cargo", "Delivery &amp; box trucks"]
     : ["Rear-end crashes", "Intersection &amp; T-bone", "Head-on collisions", "Highway pileups", "Hit-and-run / uninsured driver", "Uber, Lyft &amp; delivery drivers", "Drunk or distracted drivers", "Work-zone crashes"];
   const faqs = [
-    k.near ? [`Do I need ${an(kw)} near me?`, `Not necessarily. What matters is a lawyer who knows ${S.name} law and answers fast. We meet ${a.city}-area clients by phone or video, 24/7, so you don't have to travel. ${S.name} cases are handled by attorney ${S.attorney}.`]
-           : ["Do I have to come to an office?", `No. We meet ${a.city}-area clients by phone or video, 24/7, so you don't have to travel. ${S.name} cases are handled by attorney ${S.attorney}.`],
+    k.near ? [`Do I need ${an(kw)} near me?`, `Not necessarily. What matters is a lawyer who knows ${S.name} law and answers fast. We meet ${clients} by phone or video, 24/7, so you don't have to travel. ${S.name} cases are handled by attorney ${S.attorney}.`]
+           : ["Do I have to come to an office?", `No. We meet ${clients} by phone or video, 24/7, so you don't have to travel. ${S.name} cases are handled by attorney ${S.attorney}.`],
     [`How long do I have to file a claim in ${S.name}?`, L.deadlineFaq],
     ["What if I was partly at fault?", L.faultFaq],
     k.truck ? ["Who can be held responsible for a truck crash?", `Possibly the driver, the motor carrier, the trailer or cargo loader, or a maintenance company. Federal rules on driver hours and inspections (49 CFR Parts 390–396) often matter.{s4}`]

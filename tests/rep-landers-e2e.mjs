@@ -14,6 +14,7 @@ import { readFile } from "node:fs/promises";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { allPages, AZ, REP_STATES, TITLE_MAX, decode, text } from "../generate-rep-landers.mjs";
+import { RENAMED } from "../state-landers.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url)).replace(/\/$/, "");
 process.chdir(ROOT); // the generator's helpers read rep-landers/ relative to the repo
@@ -175,7 +176,7 @@ for (const p of PAGES) {
     const norm = s => s.toLowerCase().replace(/[^a-z ]+/g, " ").replace(/\s+/g, " ");
     const missing = p.keyword.split("-").filter(w => !norm(h1).split(" ").includes(w));
     expect("new states: the H1 carries every word of the page's keyword", file, !missing.length, `${h1} lacks ${missing}`);
-    const city = h1.match(/ in ([^,]+), [A-Z]{2}$/)?.[1];
+    const city = h1.match(/ in ([^,]+?)(?:, [A-Z]{2})?$/)?.[1]; // the city, or the state on a statewide page
     const h2s = [...html.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/g)].map(m => text(m[1]));
     const withCity = h2s.filter(h => city && h.includes(city)).length;
     expect("new states: the city in at least 5 H2s, the H1 in the title", file, withCity >= 5 && decode((html.match(/<title>([^<]*)/) || [, ""])[1]).startsWith(h1), `${withCity} of ${h2s.length} H2s name ${city}`);
@@ -311,6 +312,22 @@ for (const width of [320, 390]) {
     expect("thank-you page: the market's GTM container (or none), then lead_form_submit", `geo=${geo || "(none)"}`, got === want && conv === 1, `${got || "no container"} want ${want || "none"}, ${conv} events`);
     const ctmGot = ctmRequests.map(u => u.match(/companies\/(\d+)\//)[1]).join();
     expect("thank-you page: the state's CallTrackingMetrics number swap (or none)", `geo=${geo || "(none)"}`, ctmGot === CTM_CASES[geo], `${ctmGot || "none"} want ${CTM_CASES[geo] || "none"}`);
+  }
+  await ctx.close();
+}
+
+// moved pages: the old URL lands on the new page with the ad's query string and hash intact
+{
+  const ctx = await newCtx(390);
+  const pg = await ctx.newPage();
+  for (const [from, to] of Object.entries(RENAMED)) {
+    expect("moved pages: the new page exists, the old URL is a noindex redirect", from, existsSync(`${ROOT}/${to}/index.html`)
+      && /noindex/.test(readFileSync(`${ROOT}/${from}/index.html`, "utf8")) && PAGES.some(p => p.dir === to) && !PAGES.some(p => p.dir === from));
+    await pg.goto(`${HOST}${from}/?gclid=test-123&kw=x#case-form`);
+    await pg.waitForURL(u => u.pathname === `/${to}/`, { timeout: 5000 }).catch(() => {});
+    const u = new URL(pg.url());
+    expect("moved pages: the old URL redirects with the query string and hash", from,
+      u.pathname === `/${to}/` && u.search === "?gclid=test-123&kw=x" && u.hash === "#case-form", pg.url());
   }
   await ctx.close();
 }
