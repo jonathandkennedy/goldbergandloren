@@ -163,16 +163,18 @@ The "CallRail" numbers are swapped by **CallTrackingMetrics** (`cdn.calltrk.com`
 |---|---|---|
 | Texas, all 15 markets incl. Midland | company 689248831 | `"ctm"` key in each Texas market's `#geo-data` record, in all 4 masters |
 | Arizona | company 977831359 | `AZ.callTracking` in `generate-rep-landers.mjs` |
+| Tennessee | company 664639969 | `STATES.TN.callTracking` in `state-landers.mjs` |
+| Georgia | company 518532685 | `STATES.GA.callTracking` in `state-landers.mjs` |
 
 Before this, no swap script ran on any page. The GTM container doesn't load one (it holds only Google Ads AW-18397760758 and GA4 G-E8XSSR3M8Q), so Texas calls were tracked only per number and market.
 
 Where the script loads:
 - **Baked pages:** `generate-geo.mjs` bakes the snippet, verbatim, at the end of the body of every Texas lander. The keyword-test, tag (B/C) and rep (D/E) pages copy it from those landers.
 - **Sitelink pages:** they load it at runtime when `?geo=` is a Texas market.
-- **thank-you.html:** it keeps its own two-entry `var CTM` map (tx / az), so a visitor who calls from it is still attributed.
+- **thank-you.html:** it keeps its own `var CTM` map (tx / az / tn / ga), so a visitor who calls from it is still attributed.
 - **Not loaded:** other markets and the national pages without `?geo=`.
 
-`tests/rep-landers-e2e.mjs` sweeps every page for the right block (214 Texas, 70 Arizona, none elsewhere) and checks the geo data and the thank-you map against each other. To add a state, give its markets a `"ctm"` and add it to the thank-you map. **Count calls as conversions** — 56% of legal conversions are calls.
+`tests/rep-landers-e2e.mjs` sweeps every page for the right block (214 Texas, 70 Arizona, 52 Tennessee, 79 Georgia, none elsewhere) and checks the geo data and the thank-you map against each other. To add a state, give its markets a `"ctm"` and add it to the thank-you map. **Count calls as conversions** — 56% of legal conversions are calls.
 
 ## Legal pages + footer (2026-09-14)
 - `privacy-policy.html` and `terms.html` — subdomain-specific, written for THESE
@@ -727,4 +729,4 @@ The build removes the same unverified claims as in Texas: "home or hospital" vis
 - **PHONE NUMBERS ARE PLACEHOLDERS:** (615) 555-0100 and (404) 555-0100, in the fictional 555-01xx range, so nothing rings.
   - Set `phone`/`display` in `state-landers.mjs` and re-run `node generate-rep-landers.mjs` and `node build-hub.mjs`.
   - The build prints a reminder until you do, and the hub marks both states.
-- **No call tracking yet.** Add a `callTracking` snippet per state, as Arizona has.
+- **Call tracking (2026-11-02):** each state has its own CallTrackingMetrics account, set as `callTracking` in `state-landers.mjs`. Tennessee is company 664639969 and Georgia is 518532685. The thank-you page loads the matching one for leads from each state.

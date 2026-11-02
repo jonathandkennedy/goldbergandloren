@@ -35,7 +35,11 @@ export const STATES = {
     phone: "+16155550100", display: "(615) 555-0100", phonePlaceholder: true,
     // licensed in Tennessee (Board of Professional Responsibility no. 024218)
     attorney: "George Z. Goldberg",
-    gtm: "GTM-NK6KTLNL", trackFrom: "car-accident-dallas-tx.html", callTracking: "",
+    gtm: "GTM-NK6KTLNL", trackFrom: "car-accident-dallas-tx.html",
+    // the firm's Tennessee CallTrackingMetrics number swap, verbatim
+    callTracking: `<!-- CallTrackingMetrics -->
+<script type="text/javascript" src="//cdn.calltrk.com/companies/664639969/3d806a079ad544ff4af3/12/swap.js"></script>
+<!-- End CallTrackingMetrics -->`,
     law: {
       remote: "Tennessee car and truck crash claims. Free review by phone or video, 24/7.",
       officeLine: "Serving clients across Tennessee",
@@ -95,7 +99,11 @@ export const STATES = {
     phone: "+14045550100", display: "(404) 555-0100", phonePlaceholder: true,
     // licensed in Georgia (State Bar of Georgia, admitted 2010), as on the Arizona pages
     attorney: "James M. Loren",
-    gtm: "GTM-NK6KTLNL", trackFrom: "car-accident-dallas-tx.html", callTracking: "",
+    gtm: "GTM-NK6KTLNL", trackFrom: "car-accident-dallas-tx.html",
+    // the firm's Georgia CallTrackingMetrics number swap, verbatim
+    callTracking: `<!-- CallTrackingMetrics -->
+<script type="text/javascript" src="//cdn.calltrk.com/companies/518532685/b68354cd3453d02f9892/12/swap.js"></script>
+<!-- End CallTrackingMetrics -->`,
     law: {
       remote: "Georgia car and truck crash claims. Free review by phone or video, 24/7.",
       officeLine: "Serving clients across Georgia",

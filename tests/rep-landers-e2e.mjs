@@ -86,11 +86,17 @@ for (const m of ["car-accident", "truck-accident", "motorcycle-accident", "rides
 }
 expect("every Texas market, and no other, has the Texas CallTrackingMetrics account", "geo data", ctmSrcs.size === 1 && !ctmWrong.length, `${[...ctmSrcs]} ${ctmWrong.join(", ")}`);
 const TX_CTM = [...ctmSrcs][0], TX_CTM_ID = (TX_CTM || "").match(/companies\/(\d+)\//)?.[1];
-const AZ_CTM = AZ.callTracking.match(/src="([^"]+)"/)[1], AZ_CTM_ID = AZ_CTM.match(/companies\/(\d+)\//)[1];
+// each rep-style state's own account (its settings' snippet), by state slug
+const ctmSrc = st => (st.callTracking.match(/src="([^"]+)"/) || [])[1] || "";
+const ctmId = src => (src.match(/companies\/(\d+)\//) || [])[1] || "";
+const STATE_CTM = Object.fromEntries(Object.values(REP_STATES).filter(st => st.callTracking).map(st => [st.slug, ctmSrc(st)]));
+const AZ_CTM_ID = ctmId(STATE_CTM.az);
+expect("every rep-style state has its own CallTrackingMetrics account", "-", Object.values(REP_STATES).every(st => STATE_CTM[st.slug])
+  && new Set([TX_CTM, ...Object.values(STATE_CTM)].map(ctmId)).size === 1 + Object.keys(STATE_CTM).length, JSON.stringify(STATE_CTM));
 const tyCtm = JSON.parse(readFileSync(`${ROOT}/thank-you.html`, "utf8").match(/var CTM = (\{[\s\S]*?\});/)[1]);
-expect("thank-you call-tracking map matches the landers'", "thank-you.html", tyCtm.tx === TX_CTM && tyCtm.az === AZ_CTM && Object.keys(tyCtm).length === 2, JSON.stringify(tyCtm));
+expect("thank-you call-tracking map matches the landers'", "thank-you.html", JSON.stringify(tyCtm) === JSON.stringify({ tx: TX_CTM, ...STATE_CTM }), JSON.stringify(tyCtm));
 // every deployable page: Texas pages (baked for a Texas market, or a Texas rep page) carry the Texas
-// block once, Arizona pages Arizona's, every other page none
+// block once, each rep-style state's pages that state's, every other page none
 {
   const files = [];
   const walk = d => { for (const e of readdirSync(`${ROOT}/${d}`, { withFileTypes: true })) {
@@ -99,17 +105,18 @@ expect("thank-you call-tracking map matches the landers'", "thank-you.html", tyC
     else if (e.name.endsWith(".html")) files.push(rel);
   } };
   walk("");
-  const n = { tx: 0, az: 0, none: 0 };
+  const n = { tx: 0, none: 0 };
   for (const f of files) {
     const html = readFileSync(`${ROOT}/${f}`, "utf8");
     const rp = PAGES.find(p => `${p.dir}/index.html` === f);
-    const state = rp ? (rp.group === "AZ" ? "az" : REP_STATES[rp.group] ? "none" : "tx") : /data-baked="[a-z-]+-tx"/.test(html) ? "tx" : "none";
-    n[state]++;
+    const state = rp ? (REP_STATES[rp.group]?.slug || "tx") : /data-baked="[a-z-]+-tx"/.test(html) ? "tx" : "none";
+    n[state] = (n[state] || 0) + 1;
     const blocks = (html.match(/<!-- CallTrackingMetrics -->/g) || []).length;
-    const ok = state === "none" ? blocks === 0 : blocks === 1 && html.includes(state === "az" ? AZ.callTracking : ctmBlock(TX_CTM));
-    expect("site-wide: Texas pages carry the Texas CallTrackingMetrics, Arizona pages Arizona's, no other page any", f, ok, `${state}, ${blocks} block(s)`);
+    const ok = state === "none" ? blocks === 0 : blocks === 1 && html.includes(ctmBlock(state === "tx" ? TX_CTM : STATE_CTM[state]));
+    expect("site-wide: each state's pages carry that state's CallTrackingMetrics, no other page any", f, ok, `${state}, ${blocks} block(s)`);
   }
-  expect("site-wide call-tracking sweep saw 214 Texas and 70 Arizona pages", "-", n.tx === 214 && n.az === 70, JSON.stringify(n));
+  const want = { tx: 214, ...Object.fromEntries(Object.entries(REP_STATES).map(([g, st]) => [st.slug, PAGES.filter(p => p.group === g).length])) };
+  expect("site-wide call-tracking sweep saw every state's pages", "-", Object.entries(want).every(([k, v]) => n[k] === v), JSON.stringify(n));
 }
 
 const seen = { title: new Map(), desc: new Map() };
@@ -264,7 +271,7 @@ for (const width of [320, 390]) {
     expect("page_variant pushed once, with the group's tag", file, s.dl.length === 1 && s.dl[0] === p.variant, JSON.stringify(s.dl));
     expect("no review note in the rendered text", file, !/VERIFY|PLACEHOLDER|Legal review/.test(s.text));
     const ctmGot = ctmRequests.map(u => u.match(/companies\/(\d+)\//)[1]).join();
-    expect("loads its state's CallTrackingMetrics number swap (or none)", file, ctmGot === (p.group === "AZ" ? AZ_CTM_ID : REP_STATES[p.group] ? "" : TX_CTM_ID), ctmGot || "none");
+    expect("loads its state's CallTrackingMetrics number swap", file, ctmGot === (REP_STATES[p.group] ? ctmId(STATE_CTM[REP_STATES[p.group].slug]) : TX_CTM_ID), ctmGot || "none");
 
     // both forms send a tagged lead and land on the thank-you page
     for (const form of p.kind === "sitelink" ? ["hero"] : ["hero", "bottom"]) {
@@ -294,7 +301,7 @@ for (const width of [320, 390]) {
   const CASES = { "fort-worth-tx": "GTM-NK6KTLNL", "mckinney-tx": "GTM-NK6KTLNL", "boise-id": "GTM-58MTFGGD", "az-tucson-metro": AZ.gtm, az: AZ.gtm,
     "tn-nashville": REP_STATES.TN.gtm, ga: REP_STATES.GA.gtm,
     "los-angeles-ca": "", "": "" };
-  const CTM_CASES = { "fort-worth-tx": TX_CTM_ID, "mckinney-tx": TX_CTM_ID, "boise-id": "", "az-tucson-metro": AZ_CTM_ID, az: AZ_CTM_ID, "tn-nashville": "", ga: "", "los-angeles-ca": "", "": "" };
+  const CTM_CASES = { "fort-worth-tx": TX_CTM_ID, "mckinney-tx": TX_CTM_ID, "boise-id": "", "az-tucson-metro": AZ_CTM_ID, az: AZ_CTM_ID, "tn-nashville": ctmId(STATE_CTM.tn), ga: ctmId(STATE_CTM.ga), "los-angeles-ca": "", "": "" };
   for (const [geo, want] of Object.entries(CASES)) {
     gtmRequests = []; ctmRequests = [];
     await pg.goto(`${HOST}thank-you.html?geo=${geo}&ct=car-accident&variant=x`);

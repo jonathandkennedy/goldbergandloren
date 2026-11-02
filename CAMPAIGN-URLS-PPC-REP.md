@@ -106,7 +106,7 @@ Attorney responsible for the ads: James M. Loren. GTM container: GTM-NK6KTLNL.
 
 Calls go to (615) 555-0100 — **a placeholder: replace it in state-landers.mjs before the ads run**; leads carry the
 variant below (and `geo: tn-{area}`, or `tn` on a sitelink). Attorney responsible for the ads:
-George Z. Goldberg. GTM container: GTM-NK6KTLNL. No call tracking yet.
+George Z. Goldberg. GTM container: GTM-NK6KTLNL.
 
 | Area | Keyword | URL | Lead tag |
 |---|---|---|---|
@@ -167,7 +167,7 @@ George Z. Goldberg. GTM container: GTM-NK6KTLNL. No call tracking yet.
 
 Calls go to (404) 555-0100 — **a placeholder: replace it in state-landers.mjs before the ads run**; leads carry the
 variant below (and `geo: ga-{area}`, or `ga` on a sitelink). Attorney responsible for the ads:
-James M. Loren. GTM container: GTM-NK6KTLNL. No call tracking yet.
+James M. Loren. GTM container: GTM-NK6KTLNL.
 
 | Area | Keyword | URL | Lead tag |
 |---|---|---|---|
