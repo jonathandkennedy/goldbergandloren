@@ -110,6 +110,15 @@ George Z. Goldberg. GTM container: GTM-NK6KTLNL.
 
 | Area | Keyword | URL | Lead tag |
 |---|---|---|---|
+| Statewide | auto accident lawyer tennessee | https://results.goldbergloren.com/tn/statewide/auto-accident-lawyer-tennessee/ | `tn-statewide-auto-accident-lawyer-tennessee` |
+| Statewide | car accident attorney tennessee | https://results.goldbergloren.com/tn/statewide/car-accident-attorney-tennessee/ | `tn-statewide-car-accident-attorney-tennessee` |
+| Statewide | car accident attorney near me | https://results.goldbergloren.com/tn/statewide/car-accident-attorney-near-me/ | `tn-statewide-car-accident-attorney-near-me` |
+| Statewide | car accident lawyer tennessee | https://results.goldbergloren.com/tn/statewide/car-accident-lawyer-tennessee/ | `tn-statewide-car-accident-lawyer-tennessee` |
+| Statewide | car accident lawyer near me | https://results.goldbergloren.com/tn/statewide/car-accident-lawyer-near-me/ | `tn-statewide-car-accident-lawyer-near-me` |
+| Statewide | semi truck accident lawyer tennessee | https://results.goldbergloren.com/tn/statewide/semi-truck-accident-lawyer-tennessee/ | `tn-statewide-semi-truck-accident-lawyer-tennessee` |
+| Statewide | truck accident attorney tennessee | https://results.goldbergloren.com/tn/statewide/truck-accident-attorney-tennessee/ | `tn-statewide-truck-accident-attorney-tennessee` |
+| Statewide | truck accident attorney near me | https://results.goldbergloren.com/tn/statewide/truck-accident-attorney-near-me/ | `tn-statewide-truck-accident-attorney-near-me` |
+| Statewide | truck accident lawyer tennessee | https://results.goldbergloren.com/tn/statewide/truck-accident-lawyer-tennessee/ | `tn-statewide-truck-accident-lawyer-tennessee` |
 | Nashville | auto accident lawyer nashville | https://results.goldbergloren.com/tn/nashville/auto-accident-lawyer-nashville/ | `tn-nashville-auto-accident-lawyer-nashville` |
 | Nashville | car accident attorney nashville | https://results.goldbergloren.com/tn/nashville/car-accident-attorney-nashville/ | `tn-nashville-car-accident-attorney-nashville` |
 | Nashville | car accident attorney near me | https://results.goldbergloren.com/tn/nashville/car-accident-attorney-near-me/ | `tn-nashville-car-accident-attorney-near-me` |
@@ -171,6 +180,15 @@ James M. Loren. GTM container: GTM-NK6KTLNL.
 
 | Area | Keyword | URL | Lead tag |
 |---|---|---|---|
+| Statewide | auto accident lawyer georgia | https://results.goldbergloren.com/ga/statewide/auto-accident-lawyer-georgia/ | `ga-statewide-auto-accident-lawyer-georgia` |
+| Statewide | car accident attorney georgia | https://results.goldbergloren.com/ga/statewide/car-accident-attorney-georgia/ | `ga-statewide-car-accident-attorney-georgia` |
+| Statewide | car accident attorney near me | https://results.goldbergloren.com/ga/statewide/car-accident-attorney-near-me/ | `ga-statewide-car-accident-attorney-near-me` |
+| Statewide | car accident lawyer georgia | https://results.goldbergloren.com/ga/statewide/car-accident-lawyer-georgia/ | `ga-statewide-car-accident-lawyer-georgia` |
+| Statewide | car accident lawyer near me | https://results.goldbergloren.com/ga/statewide/car-accident-lawyer-near-me/ | `ga-statewide-car-accident-lawyer-near-me` |
+| Statewide | semi truck accident lawyer georgia | https://results.goldbergloren.com/ga/statewide/semi-truck-accident-lawyer-georgia/ | `ga-statewide-semi-truck-accident-lawyer-georgia` |
+| Statewide | truck accident attorney georgia | https://results.goldbergloren.com/ga/statewide/truck-accident-attorney-georgia/ | `ga-statewide-truck-accident-attorney-georgia` |
+| Statewide | truck accident attorney near me | https://results.goldbergloren.com/ga/statewide/truck-accident-attorney-near-me/ | `ga-statewide-truck-accident-attorney-near-me` |
+| Statewide | truck accident lawyer georgia | https://results.goldbergloren.com/ga/statewide/truck-accident-lawyer-georgia/ | `ga-statewide-truck-accident-lawyer-georgia` |
 | Atlanta | auto accident lawyer atlanta | https://results.goldbergloren.com/ga/atlanta/auto-accident-lawyer-atlanta/ | `ga-atlanta-auto-accident-lawyer-atlanta` |
 | Atlanta | car accident attorney atlanta | https://results.goldbergloren.com/ga/atlanta/car-accident-attorney-atlanta/ | `ga-atlanta-car-accident-attorney-atlanta` |
 | Atlanta | car accident attorney near me | https://results.goldbergloren.com/ga/atlanta/car-accident-attorney-near-me/ | `ga-atlanta-car-accident-attorney-near-me` |
@@ -234,15 +252,15 @@ James M. Loren. GTM container: GTM-NK6KTLNL.
 | Savannah | semi truck accident lawyer savannah | https://results.goldbergloren.com/ga/savannah/semi-truck-accident-lawyer-savannah/ | `ga-savannah-semi-truck-accident-lawyer-savannah` |
 | Savannah | truck accident attorney near me | https://results.goldbergloren.com/ga/savannah/truck-accident-attorney-near-me/ | `ga-savannah-truck-accident-attorney-near-me` |
 | Savannah | truck accident lawyer savannah | https://results.goldbergloren.com/ga/savannah/truck-accident-lawyer-savannah/ | `ga-savannah-truck-accident-lawyer-savannah` |
-| Athens | auto accident lawyer athens ga | https://results.goldbergloren.com/ga/athens/auto-accident-lawyer-athens-ga/ | `ga-athens-auto-accident-lawyer-athens-ga` |
-| Athens | car accident attorney athens ga | https://results.goldbergloren.com/ga/athens/car-accident-attorney-athens-ga/ | `ga-athens-car-accident-attorney-athens-ga` |
+| Athens | auto accident lawyer athens | https://results.goldbergloren.com/ga/athens/auto-accident-lawyer-athens/ | `ga-athens-auto-accident-lawyer-athens` |
+| Athens | car accident attorney athens | https://results.goldbergloren.com/ga/athens/car-accident-attorney-athens/ | `ga-athens-car-accident-attorney-athens` |
 | Athens | car accident attorney near me | https://results.goldbergloren.com/ga/athens/car-accident-attorney-near-me/ | `ga-athens-car-accident-attorney-near-me` |
-| Athens | car accident lawyer athens ga | https://results.goldbergloren.com/ga/athens/car-accident-lawyer-athens-ga/ | `ga-athens-car-accident-lawyer-athens-ga` |
+| Athens | car accident lawyer athens | https://results.goldbergloren.com/ga/athens/car-accident-lawyer-athens/ | `ga-athens-car-accident-lawyer-athens` |
 | Athens | car accident lawyer near me | https://results.goldbergloren.com/ga/athens/car-accident-lawyer-near-me/ | `ga-athens-car-accident-lawyer-near-me` |
 | Athens | car accident lawyer watkinsville | https://results.goldbergloren.com/ga/athens/car-accident-lawyer-watkinsville/ | `ga-athens-car-accident-lawyer-watkinsville` |
-| Athens | semi truck accident lawyer athens ga | https://results.goldbergloren.com/ga/athens/semi-truck-accident-lawyer-athens-ga/ | `ga-athens-semi-truck-accident-lawyer-athens-ga` |
+| Athens | semi truck accident lawyer athens | https://results.goldbergloren.com/ga/athens/semi-truck-accident-lawyer-athens/ | `ga-athens-semi-truck-accident-lawyer-athens` |
 | Athens | truck accident attorney near me | https://results.goldbergloren.com/ga/athens/truck-accident-attorney-near-me/ | `ga-athens-truck-accident-attorney-near-me` |
-| Athens | truck accident lawyer athens ga | https://results.goldbergloren.com/ga/athens/truck-accident-lawyer-athens-ga/ | `ga-athens-truck-accident-lawyer-athens-ga` |
+| Athens | truck accident lawyer athens | https://results.goldbergloren.com/ga/athens/truck-accident-lawyer-athens/ | `ga-athens-truck-accident-lawyer-athens` |
 | Sitelink | about goldberg loren | https://results.goldbergloren.com/ga/about-goldberg-loren/ | `ga-about-goldberg-loren` |
 | Sitelink | georgia car accident faqs | https://results.goldbergloren.com/ga/georgia-car-accident-faqs/ | `ga-georgia-car-accident-faqs` |
 | Sitelink | free case review | https://results.goldbergloren.com/ga/free-case-review/ | `ga-free-case-review` |

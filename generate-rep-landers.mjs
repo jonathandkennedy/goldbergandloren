@@ -45,7 +45,7 @@
  * new version: re-check by hand).
  */
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync, statSync } from "node:fs";
-import { STATES, statePages } from "./state-landers.mjs";
+import { STATES, statePages, RENAMED } from "./state-landers.mjs";
 
 const SRC = "rep-landers";
 const BASE = "https://results.goldbergloren.com/";
@@ -438,6 +438,25 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     }
   }
   if (failed) { console.error(`${failed} problem(s); fix them before publishing`); process.exit(1); }
+  // moved pages keep their old URL as a redirect, as generate-support-pages.mjs does: the query
+  // string and hash are carried across, so an ad's gclid and the call-tracking session survive
+  for (const [from, to] of Object.entries(RENAMED)) {
+    if (!pages.some(p => p.dir === to)) { console.error(`redirect target ${to} is not a page`); process.exit(1); }
+    mkdirSync(from, { recursive: true });
+    writeFileSync(`${from}/index.html`, `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,follow">
+<title>Moved | Goldberg &amp; Loren</title>
+<link rel="canonical" href="${BASE}${to}/">
+<script>location.replace("/${to}/" + location.search + location.hash);</script>
+<noscript><meta http-equiv="refresh" content="0; url=/${to}/"></noscript>
+</head>
+<body><p>This page has moved to <a href="/${to}/">/${to}/</a>.</p></body>
+</html>
+`);
+  }
   writeFileSync("CAMPAIGN-URLS-PPC-REP.md", urlTable(pages));
   const n = g => pages.filter(p => p.group === g).length;
   console.log(`built ${pages.length} PPC rep landers (Texas: ${n("D")} D + ${n("E")} E; ${Object.entries(REP_STATES).map(([g, S]) => `${S.name}: ${n(g)}`).join("; ")}); no review notes left; titles ≤${TITLE_MAX} characters and unique; CAMPAIGN-URLS-PPC-REP.md updated`);

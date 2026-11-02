@@ -727,4 +727,15 @@ The build removes the same unverified claims as in Texas: "home or hospital" vis
   - Every legal statement cites its statute or case in the footer.
 - **Offices:** the copy doesn't claim or deny a local office. goldbergloren.com lists Knoxville (9111 Cross Park Dr.) and Atlanta (3355 Lenox Rd), but its Georgia page shows Augusta (823 Broad St). Confirm with the firm before adding an address.
 - **Phone numbers (2026-11-02):** Tennessee (615) 880-6348, Georgia (404) 795-7921. Each is set as `phone`/`display` in `state-landers.mjs`; to change one, edit both and re-run `node generate-rep-landers.mjs` and `node build-hub.mjs`. Add each number to its state's swap list in CallTrackingMetrics so the script can replace it with a tracking number.
+- **Statewide pages (2026-11-02):** `/tn/statewide/{keyword}/` and `/ga/statewide/{keyword}/`, 9 per state.
+  - They serve the "near me" ad groups and the statewide ad groups, which used to land on the national pages.
+  - Same design and checks as the city pages. The H1 names the state, e.g. "Car Accident Lawyer Near Me in Tennessee", and the state runs through the H2s.
+  - Keywords: auto accident lawyer, car accident attorney, car accident lawyer, semi truck accident lawyer, truck accident attorney and truck accident lawyer {state}; plus car accident attorney / car accident lawyer / truck accident attorney near me.
+  - Statewide crash figures:
+    - Tennessee: 44,079 injury crashes in 2025, preliminary (the same state PDF as the county counts).
+    - Georgia: 371,130 police-reported crashes and 1,403 deaths in 2024 (GOHS, "Georgia Traffic Safety Facts: Overview of Motor Vehicle Crashes in 2024").
+  - Search volume (OpenSEO, US): "car accident lawyer/attorney georgia" about 1,300 a month, "auto accident lawyer georgia" 1,600, "tennessee car accident lawyer/attorney" 320.
+- **Athens URLs (2026-11-02):** Athens now uses the other cities' pattern, e.g. `/ga/athens/car-accident-lawyer-athens/`.
+  - The five old `-athens-ga` URLs redirect to the new ones and keep the query string and hash (`RENAMED` in `state-landers.mjs`).
+  - This is the same pattern as `maximize-compensation.html`. An ad still pointing at an old URL keeps its gclid.
 - **Call tracking (2026-11-02):** each state has its own CallTrackingMetrics account, set as `callTracking` in `state-landers.mjs`. Tennessee is company 664639969 and Georgia is 518532685. The thank-you page loads the matching one for leads from each state.
